@@ -188,13 +188,13 @@
             android:name="io.nekohasekai.sagernet.ui.profile.ChainSettingsActivity"
             android:configChanges="uiMode" />
         <activity
-            android:name="moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSSettingsActivity"
+            android:name="com.dragonvpn.core.proxy.shadowtls.ShadowTLSSettingsActivity"
             android:configChanges="uiMode" />
         <activity
-            android:name="moe.matsuri.nb4a.proxy.anytls.AnyTLSSettingsActivity"
+            android:name="com.dragonvpn.core.proxy.anytls.AnyTLSSettingsActivity"
             android:configChanges="uiMode" />
         <activity
-            android:name="moe.matsuri.nb4a.proxy.config.ConfigSettingActivity"
+            android:name="com.dragonvpn.core.proxy.config.ConfigSettingActivity"
             android:configChanges="uiMode" />
         <activity
             android:name="io.nekohasekai.sagernet.ui.GroupSettingsActivity"
