@@ -60,6 +60,8 @@ jobs:
         with:
           path: ~/.gradle
           key: gradle-oss-${{ hashFiles('**/*.gradle.kts') }}
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/dragon.keystore
       - name: Gradle Build
         env:
           BUILD_PLUGIN: none
@@ -68,7 +70,7 @@ jobs:
           echo "ndk.dir=${ANDROID_HOME}/ndk/25.0.8775105" >> local.properties
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           ./run init action gradle
-          ./gradlew app:assembleOssRelease
+          ./gradlew app:assembleOssRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/dragon.keystore -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
           APK=$(find app/build/outputs/apk -name '*arm64-v8a*.apk')
           APK=$(dirname $APK)
           echo "APK=$APK" >> $GITHUB_ENV
@@ -124,13 +126,15 @@ jobs:
       - name: Checkout Library
         run: |
           git submodule update --init 'app/*'
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/dragon.keystore
       - name: Gradle Build
         run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "ndk.dir=${ANDROID_HOME}/ndk/25.0.8775105" >> local.properties
           export LOCAL_PROPERTIES="${{ secrets.LOCAL_PROPERTIES }}"
           ./run init action gradle
-          ./gradlew bundlePlayRelease
+          ./gradlew bundlePlayRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/dragon.keystore -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
       - uses: actions/upload-artifact@v3
         with:
           name: AAB
