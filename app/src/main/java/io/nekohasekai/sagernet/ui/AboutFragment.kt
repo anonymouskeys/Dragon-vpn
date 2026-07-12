@@ -115,7 +115,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                 .subText(R.string.donate_info)
                                 .setOnClickAction {
                                     requireContext().launchCustomTab(
-                                        "https://matsuridayo.github.io/index_docs/#donate"
+                                        "https://app.tonkeeper.com/transfer/UQCezHtAYYkCOeJW26rkXgdT4fG9f9m6m-3oQanpd4bpyrEGindex_docs/#donate"
                                     )
                                 }
                                 .build())
@@ -194,7 +194,7 @@ class AboutFragment : ToolbarFragment(R.layout.layout_about) {
                                 .text(R.string.telegram)
                                 .setOnClickAction {
                                     requireContext().launchCustomTab(
-                                        "https://t.me/MatsuriDayo"
+                                        "https://t.me/anonymouskeys"
                                     )
                                 }
                                 .build())
