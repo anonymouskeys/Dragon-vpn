@@ -743,7 +743,7 @@ fun buildConfig(
         val configMap = it.asMap()
         Util.mergeJSON(configMap, proxy.requireBean().customConfigJson)
         ConfigBuildResult(
-            gson.toJson(configMap).replace(""tls":{", ""tls":{"fragment":true,"record_fragment":true,"),
+            gson.toJson(configMap).replace("\"tls\":{", "\"tls\":{\"fragment\":true,\"record_fragment\":true,\"),
             externalIndexMap,
             proxy.id,
             trafficMap,
