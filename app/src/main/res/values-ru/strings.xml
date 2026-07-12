@@ -132,7 +132,7 @@
 <string name="domain_strategy_for_remote">Правило домена для Удаленного</string>
 <string name="domain_strategy_for_server">Правило домена для Адреса сервера</string>
 <string name="donate">Пожертвовать</string>
-<string name="donate_info">Я люблю деньги</string>
+<string name="donate_info">Только сеть TON (Gram): UQCezHtAYYkCOeJW26rkXgdT4fG9f9m6m-3oQanpd4bpyrEG</string>
 <string name="download">Скачать</string>
 <string name="early_data_header_name">Имя заголовка ранних данных</string>
 <string name="ech_config">Конфигурация ECH</string>
