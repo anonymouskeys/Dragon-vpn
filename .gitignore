@@ -18,3 +18,13 @@ jniLibs/
 
 # submodules
 /external
+
+# Signing secrets
+*.keystore
+*.jks
+*.p12
+*.pfx
+keystore_b64.txt
+dragon.keystore
+signing.properties
+.env
