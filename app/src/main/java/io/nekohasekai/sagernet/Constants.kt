@@ -20,6 +20,7 @@ object Key {
 
     const val ANTI_DPI_TLS_FRAGMENT = "antiDpiTlsFragment"
     const val ANTI_DPI_TLS_RECORD_FRAGMENT = "antiDpiTlsRecordFragment"
+    const val ANTI_DPI_FRAGMENT_FALLBACK_DELAY = "antiDpiFragmentFallbackDelay"
 
     const val REMOTE_DNS = "remoteDns"
     const val DIRECT_DNS = "directDns"

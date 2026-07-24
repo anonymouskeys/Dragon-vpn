@@ -14,6 +14,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.preference.EditTextPreferenceModifiers
+import io.nekohasekai.sagernet.fmt.dpi.AntiDpiManager
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.utils.Theme
 import moe.matsuri.nb4a.ui.*
@@ -75,6 +76,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val antiDpiTlsFragment = findPreference<SwitchPreference>(Key.ANTI_DPI_TLS_FRAGMENT)!!
         val antiDpiTlsRecordFragment =
             findPreference<SwitchPreference>(Key.ANTI_DPI_TLS_RECORD_FRAGMENT)!!
+        val antiDpiFragmentFallbackDelay =
+            findPreference<EditTextPreference>(Key.ANTI_DPI_FRAGMENT_FALLBACK_DELAY)!!
+        antiDpiFragmentFallbackDelay.setOnPreferenceChangeListener { _, newValue ->
+            AntiDpiManager.normalizeFallbackDelay(newValue as String) != null
+        }
 
         val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!

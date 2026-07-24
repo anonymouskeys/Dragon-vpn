@@ -585,4 +585,6 @@
     <string name="anti_dpi_tls_fragment_summary">Enable TLS ClientHello fragmentation for sing-box TLS outbounds. Disabled by default.</string>
     <string name="anti_dpi_tls_record_fragment">TLS record fragmentation</string>
     <string name="anti_dpi_tls_record_fragment_summary">Also split TLS records. Use only when required by your network.</string>
+    <string name="anti_dpi_fragment_fallback_delay">Fragment fallback delay</string>
+    <string name="anti_dpi_fragment_fallback_delay_summary">Delay before sing-box falls back when a fragmented ClientHello is not accepted. Examples: 100ms, 500ms, 1s.</string>
 </resources>

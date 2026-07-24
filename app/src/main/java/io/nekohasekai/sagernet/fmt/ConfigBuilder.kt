@@ -36,6 +36,7 @@ import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean
 import moe.matsuri.nb4a.proxy.shadowtls.buildSingBoxOutboundShadowTLSBean
 import moe.matsuri.nb4a.utils.JavaUtil.gson
 import moe.matsuri.nb4a.utils.Util
+import io.nekohasekai.sagernet.fmt.dpi.AntiDpiManager
 import moe.matsuri.nb4a.utils.listByLineOrComma
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
@@ -47,26 +48,6 @@ const val TAG_BYPASS = "bypass"
 const val TAG_BLOCK = "block"
 
 const val LOCALHOST = "127.0.0.1"
-
-private fun applyTlsFragmentation(value: Any?) {
-    when (value) {
-        is MutableMap<*, *> -> {
-            @Suppress("UNCHECKED_CAST")
-            val map = value as MutableMap<String, Any?>
-            val tls = map["tls"]
-            if (tls is MutableMap<*, *>) {
-                @Suppress("UNCHECKED_CAST")
-                val tlsMap = tls as MutableMap<String, Any?>
-                tlsMap["fragment"] = true
-                tlsMap["record_fragment"] = DataStore.antiDpiTlsRecordFragment
-            }
-            map.values.forEach(::applyTlsFragmentation)
-        }
-
-        is Iterable<*> -> value.forEach(::applyTlsFragmentation)
-        is Array<*> -> value.forEach(::applyTlsFragmentation)
-    }
-}
 
 class ConfigBuildResult(
     var config: String,
@@ -763,7 +744,7 @@ fun buildConfig(
         val configMap = it.asMap()
         Util.mergeJSON(configMap, proxy.requireBean().customConfigJson)
         if (!forTest && DataStore.antiDpiTlsFragment) {
-            applyTlsFragmentation(configMap)
+            AntiDpiManager.apply(configMap)
         }
         ConfigBuildResult(
             gson.toJson(configMap),

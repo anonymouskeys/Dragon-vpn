@@ -108,6 +108,13 @@
             app:key="antiDpiTlsRecordFragment"
             app:summary="@string/anti_dpi_tls_record_fragment_summary"
             app:title="@string/anti_dpi_tls_record_fragment" />
+        <EditTextPreference
+            app:defaultValue="500ms"
+            app:dependency="antiDpiTlsFragment"
+            app:key="antiDpiFragmentFallbackDelay"
+            app:summary="@string/anti_dpi_fragment_fallback_delay_summary"
+            app:title="@string/anti_dpi_fragment_fallback_delay"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/cag_route">
