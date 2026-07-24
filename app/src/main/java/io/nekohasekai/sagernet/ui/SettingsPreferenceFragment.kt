@@ -81,6 +81,16 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         antiDpiFragmentFallbackDelay.setOnPreferenceChangeListener { _, newValue ->
             AntiDpiManager.normalizeFallbackDelay(newValue as String) != null
         }
+        val antiDpiFragmentLength =
+            findPreference<EditTextPreference>(Key.ANTI_DPI_FRAGMENT_LENGTH)!!
+        antiDpiFragmentLength.setOnPreferenceChangeListener { _, newValue ->
+            AntiDpiManager.normalizeLengthRange(newValue as String) != null
+        }
+        val antiDpiFragmentInterval =
+            findPreference<EditTextPreference>(Key.ANTI_DPI_FRAGMENT_INTERVAL)!!
+        antiDpiFragmentInterval.setOnPreferenceChangeListener { _, newValue ->
+            AntiDpiManager.normalizeIntervalRange(newValue as String) != null
+        }
 
         val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!

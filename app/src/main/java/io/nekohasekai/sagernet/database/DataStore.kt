@@ -116,6 +116,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var antiDpiTlsFragment by configurationStore.boolean(Key.ANTI_DPI_TLS_FRAGMENT) { false }
     var antiDpiTlsRecordFragment by configurationStore.boolean(Key.ANTI_DPI_TLS_RECORD_FRAGMENT) { false }
     var antiDpiFragmentFallbackDelay by configurationStore.string(Key.ANTI_DPI_FRAGMENT_FALLBACK_DELAY) { "500ms" }
+    var antiDpiFragmentLength by configurationStore.string(Key.ANTI_DPI_FRAGMENT_LENGTH) { "1-10" }
+    var antiDpiFragmentInterval by configurationStore.string(Key.ANTI_DPI_FRAGMENT_INTERVAL) { "0-5ms" }
 
     var remoteDns by configurationStore.string(Key.REMOTE_DNS) { "https://dns.google/dns-query" }
     var directDns by configurationStore.string(Key.DIRECT_DNS) { "https://223.5.5.5/dns-query" }

@@ -115,6 +115,20 @@
             app:summary="@string/anti_dpi_fragment_fallback_delay_summary"
             app:title="@string/anti_dpi_fragment_fallback_delay"
             app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="1-10"
+            app:dependency="antiDpiTlsFragment"
+            app:key="antiDpiFragmentLength"
+            app:summary="@string/anti_dpi_fragment_length_summary"
+            app:title="@string/anti_dpi_fragment_length"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            app:defaultValue="0-5ms"
+            app:dependency="antiDpiTlsFragment"
+            app:key="antiDpiFragmentInterval"
+            app:summary="@string/anti_dpi_fragment_interval_summary"
+            app:title="@string/anti_dpi_fragment_interval"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/cag_route">

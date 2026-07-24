@@ -587,4 +587,8 @@
     <string name="anti_dpi_tls_record_fragment_summary">Also split TLS records. Use only when required by your network.</string>
     <string name="anti_dpi_fragment_fallback_delay">Fragment fallback delay</string>
     <string name="anti_dpi_fragment_fallback_delay_summary">Delay before sing-box falls back when a fragmented ClientHello is not accepted. Examples: 100ms, 500ms, 1s.</string>
+    <string name="anti_dpi_fragment_length">Fragment length</string>
+    <string name="anti_dpi_fragment_length_summary">Size of each TLS ClientHello fragment in bytes. Use N or N-M, for example 1-10.</string>
+    <string name="anti_dpi_fragment_interval">Fragment interval</string>
+    <string name="anti_dpi_fragment_interval_summary">Delay between fragments. Use one duration or a range, for example 0-5ms.</string>
 </resources>

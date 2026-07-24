@@ -499,4 +499,8 @@
     <string name="anti_dpi_tls_record_fragment_summary">Дополнительно разделяет TLS-записи. Включайте только если это требуется вашей сетью.</string>
     <string name="anti_dpi_fragment_fallback_delay">Задержка резервного подключения</string>
     <string name="anti_dpi_fragment_fallback_delay_summary">Через какое время sing-box повторит подключение без фрагментации. Примеры: 100ms, 500ms, 1s.</string>
+    <string name="anti_dpi_fragment_length">Размер фрагмента</string>
+    <string name="anti_dpi_fragment_length_summary">Размер частей TLS ClientHello в байтах. Формат N или N-M, например 1-10.</string>
+    <string name="anti_dpi_fragment_interval">Интервал фрагментов</string>
+    <string name="anti_dpi_fragment_interval_summary">Задержка между частями. Одно значение или диапазон, например 0-5ms.</string>
 </resources>

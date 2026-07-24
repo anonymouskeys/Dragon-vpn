@@ -13,6 +13,7 @@ if [ ! -d "sing-box" ]; then
 fi
 pushd sing-box
 git checkout "$COMMIT_SING_BOX"
+python3 ../DragonVPN/buildScript/lib/core/patch_sing_box.py
 popd
 
 ####

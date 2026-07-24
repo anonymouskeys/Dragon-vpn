@@ -11,6 +11,8 @@ import io.nekohasekai.sagernet.database.DataStore
 object AntiDpiManager {
 
     private val durationPattern = Regex("^[1-9][0-9]*(ms|s|m)$")
+    private val lengthRangePattern = Regex("^[1-9][0-9]*(-[1-9][0-9]*)?$")
+    private val intervalRangePattern = Regex("^(0|[1-9][0-9]*(ms|s|m))(-(0|[1-9][0-9]*(ms|s|m)))?$")
 
     /**
      * Returns a normalized sing-box duration, or null when the input is invalid.
@@ -20,13 +22,28 @@ object AntiDpiManager {
         return normalized.takeIf(durationPattern::matches)
     }
 
+    fun normalizeLengthRange(value: String): String? {
+        val normalized = value.trim().replace(" ", "")
+        if (!lengthRangePattern.matches(normalized)) return null
+        val values = normalized.split("-").map(String::toInt)
+        return normalized.takeIf { values.size == 1 || values[0] <= values[1] }
+    }
+
+    fun normalizeIntervalRange(value: String): String? {
+        val normalized = value.trim().lowercase().replace(" ", "")
+        if (!intervalRangePattern.matches(normalized)) return null
+        return normalized
+    }
+
     fun apply(config: MutableMap<String, Any?>) {
         val fallbackDelay = normalizeFallbackDelay(DataStore.antiDpiFragmentFallbackDelay)
             ?: "500ms"
-        applyRecursively(config, fallbackDelay)
+        val fragmentLength = normalizeLengthRange(DataStore.antiDpiFragmentLength) ?: "1-10"
+        val fragmentInterval = normalizeIntervalRange(DataStore.antiDpiFragmentInterval) ?: "0-5ms"
+        applyRecursively(config, fallbackDelay, fragmentLength, fragmentInterval)
     }
 
-    private fun applyRecursively(value: Any?, fallbackDelay: String) {
+    private fun applyRecursively(value: Any?, fallbackDelay: String, fragmentLength: String, fragmentInterval: String) {
         when (value) {
             is MutableMap<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
@@ -39,19 +56,21 @@ object AntiDpiManager {
                     tlsMap["fragment"] = true
                     tlsMap["record_fragment"] = DataStore.antiDpiTlsRecordFragment
                     tlsMap["fragment_fallback_delay"] = fallbackDelay
+                    tlsMap["fragment_length"] = fragmentLength
+                    tlsMap["fragment_interval"] = fragmentInterval
                 }
 
                 map.values.toList().forEach { child ->
-                    applyRecursively(child, fallbackDelay)
+                    applyRecursively(child, fallbackDelay, fragmentLength, fragmentInterval)
                 }
             }
 
             is Iterable<*> -> value.forEach { child ->
-                applyRecursively(child, fallbackDelay)
+                applyRecursively(child, fallbackDelay, fragmentLength, fragmentInterval)
             }
 
             is Array<*> -> value.forEach { child ->
-                applyRecursively(child, fallbackDelay)
+                applyRecursively(child, fallbackDelay, fragmentLength, fragmentInterval)
             }
         }
     }
