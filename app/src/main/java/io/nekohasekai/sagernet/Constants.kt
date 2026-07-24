@@ -187,5 +187,5 @@ object Action {
     const val RELOAD = "io.nekohasekai.sagernet.RELOAD"
 
     // const val SWITCH_WAKE_LOCK = "io.nekohasekai.sagernet.SWITCH_WAKELOCK"
-    const val RESET_UPSTREAM_CONNECTIONS = "com.dragonvpn.core.RESET_UPSTREAM_CONNECTIONS"
+    const val RESET_UPSTREAM_CONNECTIONS = "com.anonymouskeys.dragonvpn.RESET_UPSTREAM_CONNECTIONS"
 }

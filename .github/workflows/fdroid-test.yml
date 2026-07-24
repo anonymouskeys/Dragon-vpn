@@ -20,6 +20,15 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - name: Verify repository target
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REPOSITORY}" != "anonymouskeys/Dragon-vpn" ]; then
+            echo "Refusing to build from unexpected repository: ${GITHUB_REPOSITORY}"
+            exit 1
+          fi
+
       - name: Checkout Dragon VPN
         uses: actions/checkout@v4
 
