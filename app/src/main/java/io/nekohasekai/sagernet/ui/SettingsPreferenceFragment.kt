@@ -72,6 +72,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)!!
         val bypassLanInCore = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE)!!
+        val antiDpiTlsFragment = findPreference<SwitchPreference>(Key.ANTI_DPI_TLS_FRAGMENT)!!
+        val antiDpiTlsRecordFragment =
+            findPreference<SwitchPreference>(Key.ANTI_DPI_TLS_RECORD_FRAGMENT)!!
 
         val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!
@@ -154,6 +157,8 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         trafficSniffing.onPreferenceChangeListener = reloadListener
         bypassLan.onPreferenceChangeListener = reloadListener
         bypassLanInCore.onPreferenceChangeListener = reloadListener
+        antiDpiTlsFragment.onPreferenceChangeListener = reloadListener
+        antiDpiTlsRecordFragment.onPreferenceChangeListener = reloadListener
         mtu.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener

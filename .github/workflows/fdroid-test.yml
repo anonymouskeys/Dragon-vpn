@@ -1,0 +1,72 @@
+name: F-Droid Universal Test APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fdroid-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build universal F-Droid debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout Dragon VPN
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'
+          cache-dependency-path: libcore/go.sum
+
+      - name: Prepare Android build
+        run: |
+          chmod +x run gradlew
+          echo "sdk.dir=${ANDROID_HOME}" > local.properties
+          ./run init action gradle
+
+      - name: Build libcore
+        run: ./run lib core
+
+      - name: Build universal F-Droid test APK
+        env:
+          BUILD_PLUGIN: none
+        run: ./gradlew --no-daemon app:assembleFdroidDebug
+
+      - name: Collect universal APK
+        run: |
+          set -euo pipefail
+          APK="$(find app/build/outputs/apk/fdroid/debug -type f -name '*universal*.apk' -print -quit)"
+          if [ -z "$APK" ]; then
+            echo "Universal F-Droid APK was not produced"
+            find app/build/outputs/apk -type f -name '*.apk' -print || true
+            exit 1
+          fi
+          mkdir -p artifacts
+          cp "$APK" artifacts/DragonVPN-fdroid-universal-test.apk
+          sha256sum artifacts/DragonVPN-fdroid-universal-test.apk > artifacts/DragonVPN-fdroid-universal-test.apk.sha256
+
+      - name: Upload universal APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DragonVPN-fdroid-universal-test-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14

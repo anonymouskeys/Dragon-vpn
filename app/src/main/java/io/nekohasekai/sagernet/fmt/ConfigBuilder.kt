@@ -48,6 +48,26 @@ const val TAG_BLOCK = "block"
 
 const val LOCALHOST = "127.0.0.1"
 
+private fun applyTlsFragmentation(value: Any?) {
+    when (value) {
+        is MutableMap<*, *> -> {
+            @Suppress("UNCHECKED_CAST")
+            val map = value as MutableMap<String, Any?>
+            val tls = map["tls"]
+            if (tls is MutableMap<*, *>) {
+                @Suppress("UNCHECKED_CAST")
+                val tlsMap = tls as MutableMap<String, Any?>
+                tlsMap["fragment"] = true
+                tlsMap["record_fragment"] = DataStore.antiDpiTlsRecordFragment
+            }
+            map.values.forEach(::applyTlsFragmentation)
+        }
+
+        is Iterable<*> -> value.forEach(::applyTlsFragmentation)
+        is Array<*> -> value.forEach(::applyTlsFragmentation)
+    }
+}
+
 class ConfigBuildResult(
     var config: String,
     var externalIndex: List<IndexEntity>,
@@ -742,8 +762,11 @@ fun buildConfig(
     }.let {
         val configMap = it.asMap()
         Util.mergeJSON(configMap, proxy.requireBean().customConfigJson)
+        if (!forTest && DataStore.antiDpiTlsFragment) {
+            applyTlsFragmentation(configMap)
+        }
         ConfigBuildResult(
-            gson.toJson(configMap).replace("\"tls\":{", "\"tls\":{\"fragment\":true,\"record_fragment\":true,"),
+            gson.toJson(configMap),
             externalIndexMap,
             proxy.id,
             trafficMap,

@@ -110,7 +110,7 @@ abstract class BoxInstance(
                             cacheDir, "trojan_go_" + SystemClock.elapsedRealtime() + ".json"
                         )
                         configFile.parentFile?.mkdirs()
-                        configFile.writeText(config.replace(Regex("\"tls\"\\s*:\\s*\\{"), "$0\"fragment\":{\"packets\":\"tlshello\",\"length\":\"2\",\"interval\":\"0-1\"},"))
+                        configFile.writeText(config)
                         cacheFiles.add(configFile)
 
                         val commands = mutableListOf(
@@ -126,7 +126,7 @@ abstract class BoxInstance(
                         )
 
                         configFile.parentFile?.mkdirs()
-                        configFile.writeText(config.replace(Regex("\"tls\"\\s*:\\s*\\{"), "$0\"fragment\":{\"packets\":\"tlshello\",\"length\":\"2\",\"interval\":\"0-1\"},"))
+                        configFile.writeText(config)
                         cacheFiles.add(configFile)
 
                         val envMap = mutableMapOf<String, String>()
@@ -146,7 +146,7 @@ abstract class BoxInstance(
                         )
 
                         configFile.parentFile?.mkdirs()
-                        configFile.writeText(config.replace(Regex("\"tls\"\\s*:\\s*\\{"), "$0\"fragment\":{\"packets\":\"tlshello\",\"length\":\"2\",\"interval\":\"0-1\"},"))
+                        configFile.writeText(config)
                         cacheFiles.add(configFile)
 
                         val envMap = mutableMapOf<String, String>()
@@ -176,7 +176,7 @@ abstract class BoxInstance(
                         )
 
                         configFile.parentFile?.mkdirs()
-                        configFile.writeText(config.replace(Regex("\"tls\"\\s*:\\s*\\{"), "$0\"fragment\":{\"packets\":\"tlshello\",\"length\":\"2\",\"interval\":\"0-1\"},"))
+                        configFile.writeText(config)
                         cacheFiles.add(configFile)
 
                         val commands = mutableListOf(

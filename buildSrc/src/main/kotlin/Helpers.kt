@@ -169,7 +169,7 @@ fun Project.setupApp() {
         splits.abi {
             reset()
             isEnable = true
-            isUniversalApk = false
+            isUniversalApk = true
             include("armeabi-v7a")
             include("arm64-v8a")
             include("x86")

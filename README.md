@@ -53,3 +53,13 @@ Android GUI / Интерфейс:
 - [shadowsocks/shadowsocks-android](https://github.com/shadowsocks/shadowsocks-android)
 - [SagerNet/SagerNet](https://github.com/SagerNet/SagerNet)
 
+
+## Development builds / Тестовые сборки
+
+Every push to `main` builds one installable universal F-Droid test APK in GitHub Actions. The test APK uses the standard Android debug signature and does not require release signing secrets.
+
+Каждый push в `main` собирает один устанавливаемый universal F-Droid test APK в GitHub Actions. Тестовый APK подписывается стандартным Android debug-ключом и не требует релизных секретов.
+
+TLS fragmentation is disabled by default and can be enabled by the user in **Settings → Anti-DPI**. Dragon VPN does not silently overwrite user profiles or subscription URLs.
+
+Фрагментация TLS по умолчанию выключена и включается пользователем в **Настройки → Обход DPI**. Dragon VPN не подменяет профили и URL пользовательских подписок.

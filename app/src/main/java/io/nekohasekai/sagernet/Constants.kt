@@ -18,6 +18,9 @@ object Key {
 
     const val GLOBAL_CUSTOM_CONFIG = "globalCustomConfig"
 
+    const val ANTI_DPI_TLS_FRAGMENT = "antiDpiTlsFragment"
+    const val ANTI_DPI_TLS_RECORD_FRAGMENT = "antiDpiTlsRecordFragment"
+
     const val REMOTE_DNS = "remoteDns"
     const val DIRECT_DNS = "directDns"
     const val ENABLE_DNS_ROUTING = "enableDnsRouting"

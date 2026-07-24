@@ -491,4 +491,10 @@
 <string name="ws_path">Путь к WebSocket</string>
 <string name="xtls_flow">Flow (подпротокол VLESS)</string>
 <string name="yes">Да</string>
+
+    <string name="anti_dpi_title">Обход DPI</string>
+    <string name="anti_dpi_tls_fragment">Фрагментация TLS</string>
+    <string name="anti_dpi_tls_fragment_summary">Включает фрагментацию TLS ClientHello для TLS-выходов sing-box. По умолчанию выключено.</string>
+    <string name="anti_dpi_tls_record_fragment">Фрагментация TLS-записей</string>
+    <string name="anti_dpi_tls_record_fragment_summary">Дополнительно разделяет TLS-записи. Включайте только если это требуется вашей сетью.</string>
 </resources>

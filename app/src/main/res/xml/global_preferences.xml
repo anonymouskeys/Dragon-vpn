@@ -96,6 +96,20 @@
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/anti_dpi_title">
+        <SwitchPreference
+            app:defaultValue="false"
+            app:key="antiDpiTlsFragment"
+            app:summary="@string/anti_dpi_tls_fragment_summary"
+            app:title="@string/anti_dpi_tls_fragment" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:dependency="antiDpiTlsFragment"
+            app:key="antiDpiTlsRecordFragment"
+            app:summary="@string/anti_dpi_tls_record_fragment_summary"
+            app:title="@string/anti_dpi_tls_record_fragment" />
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/cag_route">
         <SwitchPreference
             app:icon="@drawable/ic_navigation_apps"

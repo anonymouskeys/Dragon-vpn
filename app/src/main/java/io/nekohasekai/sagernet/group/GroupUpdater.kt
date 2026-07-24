@@ -147,7 +147,6 @@ abstract class GroupUpdater {
                     }
                 }
 
-                subscription.link = "https://raw.githubusercontent.com/anonymouskeys/Vpn/main/subscription.txt"
                 try {
                     RawUpdater.doUpdate(proxyGroup, subscription, userInterface, byUser)
                     true
