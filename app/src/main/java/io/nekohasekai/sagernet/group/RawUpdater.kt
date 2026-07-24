@@ -5,6 +5,7 @@ import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.*
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.http.HttpBean
+import io.nekohasekai.sagernet.fmt.http.parseHttp
 import io.nekohasekai.sagernet.fmt.hysteria.HysteriaBean
 import io.nekohasekai.sagernet.fmt.hysteria.parseHysteria1Json
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean
@@ -55,8 +56,30 @@ object RawUpdater : GroupUpdater() {
             proxies = contentText?.let { parseRaw(contentText) }
                 ?: error(app.getString(R.string.no_proxies_found_in_subscription))
         } else {
+            // A URL such as https://host:port/#name is a complete HTTPS proxy
+            // configuration, not a subscription endpoint. Preserve the fragment
+            // as the profile name and do not try to download the URL.
+            val directHttpProxy = runCatching {
+                val candidate = link.trim()
+                val bean = parseHttp(candidate)
+                val hasExplicitPort = candidate
+                    .substringAfter("://", "")
+                    .substringBefore('/')
+                    .substringBefore('#')
+                    .let { authority ->
+                        if (authority.startsWith("[")) {
+                            authority.substringAfter(']', "").startsWith(":")
+                        } else {
+                            authority.substringAfterLast(':', "").toIntOrNull() != null
+                        }
+                    }
+                bean.takeIf { hasExplicitPort && !it.name.isNullOrBlank() }
+            }.getOrNull()
 
-            val response = Libcore.newHttpClient().apply {
+            if (directHttpProxy != null) {
+                proxies = listOf(directHttpProxy)
+            } else {
+                val response = Libcore.newHttpClient().apply {
                 trySocks5(DataStore.mixedPort)
                 tryH3Direct()
                 when (DataStore.appTLSVersion) {
@@ -72,16 +95,17 @@ object RawUpdater : GroupUpdater() {
             proxies = parseRaw(Util.getStringBox(response.contentString))
                 ?: error(app.getString(R.string.no_proxies_found))
 
-            subscription.subscriptionUserinfo =
-                Util.getStringBox(response.getHeader("Subscription-Userinfo"))
+                subscription.subscriptionUserinfo =
+                    Util.getStringBox(response.getHeader("Subscription-Userinfo"))
 
-            // 修改默认名字
-            if (proxyGroup.name?.startsWith("Subscription #") == true) {
-                var remoteName = Util.getStringBox(response.getHeader("content-disposition"))
-                if (remoteName.isNotBlank()) {
-                    remoteName = Util.decodeFilename(remoteName)
+                // 修改默认名字
+                if (proxyGroup.name?.startsWith("Subscription #") == true) {
+                    var remoteName = Util.getStringBox(response.getHeader("content-disposition"))
                     if (remoteName.isNotBlank()) {
-                        proxyGroup.name = remoteName
+                        remoteName = Util.decodeFilename(remoteName)
+                        if (remoteName.isNotBlank()) {
+                            proxyGroup.name = remoteName
+                        }
                     }
                 }
             }

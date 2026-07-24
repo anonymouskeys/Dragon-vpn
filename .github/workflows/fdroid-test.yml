@@ -45,9 +45,16 @@ jobs:
           go-version: '1.25.x'
           cache-dependency-path: libcore/go.sum
 
+      - name: Validate core patch inputs
+        run: |
+          set -euo pipefail
+          test -f buildScript/lib/core/patch_sing_box.py
+          python3 -m py_compile buildScript/lib/core/patch_sing_box.py
+          grep -F 'COMMIT_SING_BOX=' buildScript/lib/core/get_source_env.sh
+
       - name: Prepare Android build
         run: |
-          chmod +x run gradlew
+          chmod +x run gradlew buildScript/lib/core/get_source.sh
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           ./run init action gradle
 
