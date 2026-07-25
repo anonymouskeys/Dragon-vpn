@@ -120,42 +120,64 @@ object AntiDpiManager {
                 val map = value as MutableMap<String, Any?>
 
                 fun applyTls(obj: Any?) {
-                    if (obj is MutableMap<*, *>) {
+                    if (obj !is MutableMap<*, *>) return
 
-                        @Suppress("UNCHECKED_CAST")
-                        val tlsMap = obj as MutableMap<String, Any?>
+                    @Suppress("UNCHECKED_CAST")
+                    val tlsMap = obj as MutableMap<String, Any?>
 
-                        android.util.Log.i(
-                            "DragonDPI",
-                            "TLS FOUND BEFORE: " + tlsMap.toString()
-                        )
+                    // Не трогаем пустые или не-TLS объекты
+                    val hasTls =
+                        tlsMap.containsKey("enabled") ||
+                        tlsMap.containsKey("server_name") ||
+                        tlsMap.containsKey("utls") ||
+                        tlsMap.containsKey("insecure")
 
-                        tlsMap["fragment"] = packets != PACKETS_TLSRECORD
-                        tlsMap["record_fragment"] = packets != PACKETS_TLSHELLO
+                    if (!hasTls) return
 
-                        android.util.Log.i(
-                            "DragonDPI",
-                            "TLS AFTER: " + tlsMap.toString()
-                        )
+                    android.util.Log.i(
+                        "DragonDPI",
+                        "TLS BEFORE APPLY: $tlsMap"
+                    )
 
-                        putOrRemove(
-                            tlsMap,
-                            "fragment_fallback_delay",
-                            fallbackDelay
-                        )
+                    when (packets) {
+                        PACKETS_TLSHELLO -> {
+                            tlsMap["fragment"] = true
+                            tlsMap["record_fragment"] = false
+                        }
 
-                        putOrRemove(
-                            tlsMap,
-                            "fragment_length",
-                            fragmentLength
-                        )
+                        PACKETS_TLSRECORD -> {
+                            tlsMap["fragment"] = false
+                            tlsMap["record_fragment"] = true
+                        }
 
-                        putOrRemove(
-                            tlsMap,
-                            "fragment_interval",
-                            fragmentInterval
-                        )
+                        PACKETS_MIXED -> {
+                            tlsMap["fragment"] = true
+                            tlsMap["record_fragment"] = true
+                        }
                     }
+
+                    putOrRemove(
+                        tlsMap,
+                        "fragment_fallback_delay",
+                        fallbackDelay
+                    )
+
+                    putOrRemove(
+                        tlsMap,
+                        "fragment_length",
+                        fragmentLength
+                    )
+
+                    putOrRemove(
+                        tlsMap,
+                        "fragment_interval",
+                        fragmentInterval
+                    )
+
+                    android.util.Log.i(
+                        "DragonDPI",
+                        "TLS AFTER APPLY: $tlsMap"
+                    )
                 }
 
 
