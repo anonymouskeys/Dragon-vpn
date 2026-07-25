@@ -20,6 +20,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
@@ -33,6 +36,53 @@ jobs:
           cache-dependency-path: |
             V2rayNG/**/*.gradle*
             V2rayNG/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and NDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;29.0.14206865"
+
+          echo "NDK_HOME=$ANDROID_HOME/ndk/29.0.14206865" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/29.0.14206865" >> "$GITHUB_ENV"
+
+      - name: Build ByeDPI native binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x compile-byedpi.sh
+          ./compile-byedpi.sh
+
+      - name: Build hev-socks5-tunnel native libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x compile-hevtun.sh
+          ./compile-hevtun.sh
+
+          mkdir -p V2rayNG/app/libs
+          cp -R libs/. V2rayNG/app/libs/
+
+      - name: Validate native runtime payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            test -s "V2rayNG/app/libs/$abi/libhev-socks5-tunnel.so"
+            test -s "V2rayNG/app/libs/$abi/libhevsockstun.so"
+            test -s "V2rayNG/app/libs/$abi/libciadpi.so"
+            file "V2rayNG/app/libs/$abi/libhev-socks5-tunnel.so"
+            file "V2rayNG/app/libs/$abi/libhevsockstun.so"
+            file "V2rayNG/app/libs/$abi/libciadpi.so"
+          done
 
       - name: Download Xray Android library
         shell: bash
@@ -59,7 +109,25 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace assembleFdroidDebug
+          ./gradlew --no-daemon --stacktrace clean assembleFdroidDebug
+
+      - name: Verify native libraries in APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find V2rayNG/app/build/outputs/apk/fdroid/debug -maxdepth 1 -type f -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          test -s "$APK"
+
+          unzip -l "$APK" > "$RUNNER_TEMP/apk-files.txt"
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            grep -Fq "lib/$abi/libhev-socks5-tunnel.so" "$RUNNER_TEMP/apk-files.txt"
+            grep -Fq "lib/$abi/libhevsockstun.so" "$RUNNER_TEMP/apk-files.txt"
+            grep -Fq "lib/$abi/libciadpi.so" "$RUNNER_TEMP/apk-files.txt"
+          done
+
+          echo "Verified native payload in $APK"
+          grep -E 'lib/(arm64-v8a|armeabi-v7a|x86|x86_64)/(libhev-socks5-tunnel|libhevsockstun|libciadpi)\.so' "$RUNNER_TEMP/apk-files.txt"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
