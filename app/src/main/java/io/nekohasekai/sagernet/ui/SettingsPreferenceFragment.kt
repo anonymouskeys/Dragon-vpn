@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.preference.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -74,23 +75,56 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val bypassLan = findPreference<SwitchPreference>(Key.BYPASS_LAN)!!
         val bypassLanInCore = findPreference<SwitchPreference>(Key.BYPASS_LAN_IN_CORE)!!
         val antiDpiTlsFragment = findPreference<SwitchPreference>(Key.ANTI_DPI_TLS_FRAGMENT)!!
-        val antiDpiTlsRecordFragment =
-            findPreference<SwitchPreference>(Key.ANTI_DPI_TLS_RECORD_FRAGMENT)!!
+        val antiDpiFragmentPackets =
+            findPreference<SimpleMenuPreference>(Key.ANTI_DPI_FRAGMENT_PACKETS)!!
+        if (DataStore.antiDpiTlsRecordFragment && DataStore.antiDpiFragmentPackets == AntiDpiManager.PACKETS_TLSHELLO) {
+            DataStore.antiDpiFragmentPackets = AntiDpiManager.PACKETS_MIXED
+            DataStore.antiDpiTlsRecordFragment = false
+        }
+
+        fun bindNormalizedTextPreference(
+            preference: EditTextPreference,
+            normalize: (String) -> String?,
+            save: (String) -> Unit,
+        ) {
+            preference.setOnBindEditTextListener { editText ->
+                editText.setSingleLine(true)
+                editText.inputType = EditorInfo.TYPE_CLASS_TEXT
+            }
+            preference.setOnPreferenceChangeListener { _, newValue ->
+                val normalized = normalize(newValue as String)
+                if (normalized == null) {
+                    Toast.makeText(requireContext(), R.string.anti_dpi_invalid_fragment_value, Toast.LENGTH_SHORT).show()
+                    false
+                } else {
+                    save(normalized)
+                    preference.text = normalized
+                    needReload()
+                    false
+                }
+            }
+        }
+
         val antiDpiFragmentFallbackDelay =
             findPreference<EditTextPreference>(Key.ANTI_DPI_FRAGMENT_FALLBACK_DELAY)!!
-        antiDpiFragmentFallbackDelay.setOnPreferenceChangeListener { _, newValue ->
-            AntiDpiManager.normalizeFallbackDelay(newValue as String) != null
-        }
+        bindNormalizedTextPreference(
+            antiDpiFragmentFallbackDelay,
+            AntiDpiManager::normalizeFallbackDelay,
+        ) { DataStore.antiDpiFragmentFallbackDelay = it }
+
         val antiDpiFragmentLength =
             findPreference<EditTextPreference>(Key.ANTI_DPI_FRAGMENT_LENGTH)!!
-        antiDpiFragmentLength.setOnPreferenceChangeListener { _, newValue ->
-            AntiDpiManager.normalizeLengthRange(newValue as String) != null
-        }
+        bindNormalizedTextPreference(
+            antiDpiFragmentLength,
+            AntiDpiManager::normalizeLengthRange,
+        ) { DataStore.antiDpiFragmentLength = it }
+
         val antiDpiFragmentInterval =
             findPreference<EditTextPreference>(Key.ANTI_DPI_FRAGMENT_INTERVAL)!!
-        antiDpiFragmentInterval.setOnPreferenceChangeListener { _, newValue ->
-            AntiDpiManager.normalizeIntervalRange(newValue as String) != null
-        }
+        bindNormalizedTextPreference(
+            antiDpiFragmentInterval,
+            AntiDpiManager::normalizeIntervalRange,
+        ) { DataStore.antiDpiFragmentInterval = it }
 
         val remoteDns = findPreference<EditTextPreference>(Key.REMOTE_DNS)!!
         val directDns = findPreference<EditTextPreference>(Key.DIRECT_DNS)!!
@@ -174,7 +208,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         bypassLan.onPreferenceChangeListener = reloadListener
         bypassLanInCore.onPreferenceChangeListener = reloadListener
         antiDpiTlsFragment.onPreferenceChangeListener = reloadListener
-        antiDpiTlsRecordFragment.onPreferenceChangeListener = reloadListener
+        antiDpiFragmentPackets.onPreferenceChangeListener = reloadListener
         mtu.onPreferenceChangeListener = reloadListener
 
         enableFakeDns.onPreferenceChangeListener = reloadListener

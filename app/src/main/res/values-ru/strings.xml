@@ -503,4 +503,12 @@
     <string name="anti_dpi_fragment_length_summary">Пользовательский размер частей TLS ClientHello в байтах: N или N-M, например 4 или 1-10. Пусто — штатное SNI-разбиение ядра.</string>
     <string name="anti_dpi_fragment_interval">Интервал фрагментов</string>
     <string name="anti_dpi_fragment_interval_summary">Пользовательская задержка между частями: одно значение или диапазон, например 2ms или 0-5ms. Пусто — использовать резервную задержку.</string>
+
+    <string name="anti_dpi_fragment_packets">Фрагментация пакетов</string>
+    <string name="anti_dpi_fragment_packets_summary">Выберите, что разделяет Dragon-core: TLS ClientHello, TLS-записи или оба варианта.</string>
+    <string name="anti_dpi_fragment_packets_tlshello">TLS ClientHello</string>
+    <string name="anti_dpi_fragment_packets_tlsrecord">TLS-записи</string>
+    <string name="anti_dpi_fragment_packets_mixed">ClientHello + TLS-записи</string>
+    <string name="anti_dpi_invalid_fragment_value">Некорректное значение фрагментации</string>
+
 </resources>

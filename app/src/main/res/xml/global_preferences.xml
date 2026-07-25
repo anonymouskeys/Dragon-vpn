@@ -102,12 +102,15 @@
             app:key="antiDpiTlsFragment"
             app:summary="@string/anti_dpi_tls_fragment_summary"
             app:title="@string/anti_dpi_tls_fragment" />
-        <SwitchPreference
-            app:defaultValue="false"
+        <moe.matsuri.nb4a.ui.SimpleMenuPreference
+            app:defaultValue="tlshello"
             app:dependency="antiDpiTlsFragment"
-            app:key="antiDpiTlsRecordFragment"
-            app:summary="@string/anti_dpi_tls_record_fragment_summary"
-            app:title="@string/anti_dpi_tls_record_fragment" />
+            app:entries="@array/anti_dpi_fragment_packets_entries"
+            app:entryValues="@array/anti_dpi_fragment_packets_values"
+            app:key="antiDpiFragmentPackets"
+            app:summary="@string/anti_dpi_fragment_packets_summary"
+            app:title="@string/anti_dpi_fragment_packets"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:defaultValue=""
             app:dependency="antiDpiTlsFragment"

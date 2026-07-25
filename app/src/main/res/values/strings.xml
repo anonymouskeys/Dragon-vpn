@@ -591,4 +591,12 @@
     <string name="anti_dpi_fragment_length_summary">User-defined TLS ClientHello fragment size in bytes: N or N-M, for example 4 or 1-10. Leave empty for the core native SNI-aware split.</string>
     <string name="anti_dpi_fragment_interval">Fragment interval</string>
     <string name="anti_dpi_fragment_interval_summary">User-defined delay between fragments: one duration or a range, for example 2ms or 0-5ms. Leave empty to use the fallback delay.</string>
+
+    <string name="anti_dpi_fragment_packets">Fragment packets</string>
+    <string name="anti_dpi_fragment_packets_summary">Select what Dragon-core splits: TLS ClientHello, TLS records, or both.</string>
+    <string name="anti_dpi_fragment_packets_tlshello">TLS ClientHello</string>
+    <string name="anti_dpi_fragment_packets_tlsrecord">TLS records</string>
+    <string name="anti_dpi_fragment_packets_mixed">ClientHello + TLS records</string>
+    <string name="anti_dpi_invalid_fragment_value">Invalid fragmentation value</string>
+
 </resources>

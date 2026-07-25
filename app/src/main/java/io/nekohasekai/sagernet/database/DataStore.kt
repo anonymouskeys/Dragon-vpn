@@ -115,6 +115,7 @@ object DataStore : OnPreferenceDataStoreChangeListener {
 
     var antiDpiTlsFragment by configurationStore.boolean(Key.ANTI_DPI_TLS_FRAGMENT) { false }
     var antiDpiTlsRecordFragment by configurationStore.boolean(Key.ANTI_DPI_TLS_RECORD_FRAGMENT) { false }
+    var antiDpiFragmentPackets by configurationStore.string(Key.ANTI_DPI_FRAGMENT_PACKETS) { "tlshello" }
     var antiDpiFragmentFallbackDelay by configurationStore.string(Key.ANTI_DPI_FRAGMENT_FALLBACK_DELAY) { "" }
     var antiDpiFragmentLength by configurationStore.string(Key.ANTI_DPI_FRAGMENT_LENGTH) { "" }
     var antiDpiFragmentInterval by configurationStore.string(Key.ANTI_DPI_FRAGMENT_INTERVAL) { "" }

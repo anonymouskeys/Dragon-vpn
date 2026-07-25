@@ -20,6 +20,7 @@ object Key {
 
     const val ANTI_DPI_TLS_FRAGMENT = "antiDpiTlsFragment"
     const val ANTI_DPI_TLS_RECORD_FRAGMENT = "antiDpiTlsRecordFragment"
+    const val ANTI_DPI_FRAGMENT_PACKETS = "antiDpiFragmentPackets"
     const val ANTI_DPI_FRAGMENT_FALLBACK_DELAY = "antiDpiFragmentFallbackDelay"
     const val ANTI_DPI_FRAGMENT_LENGTH = "antiDpiFragmentLength"
     const val ANTI_DPI_FRAGMENT_INTERVAL = "antiDpiFragmentInterval"

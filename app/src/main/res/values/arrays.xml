@@ -530,4 +530,17 @@
         <item>@string/sniff_override</item>
     </string-array>
 
+
+    <string-array name="anti_dpi_fragment_packets_entries">
+        <item>@string/anti_dpi_fragment_packets_tlshello</item>
+        <item>@string/anti_dpi_fragment_packets_tlsrecord</item>
+        <item>@string/anti_dpi_fragment_packets_mixed</item>
+    </string-array>
+
+    <string-array name="anti_dpi_fragment_packets_values">
+        <item>tlshello</item>
+        <item>tlsrecord</item>
+        <item>mixed</item>
+    </string-array>
+
 </resources>
