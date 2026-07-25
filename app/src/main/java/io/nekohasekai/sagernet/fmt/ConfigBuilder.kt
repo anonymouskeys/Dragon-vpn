@@ -749,6 +749,11 @@ fun buildConfig(
         ) {
             AntiDpiManager.apply(configMap)
         }
+        android.util.Log.i(
+            "DragonDPI",
+            gson.toJson(configMap)
+        )
+
         ConfigBuildResult(
             gson.toJson(configMap),
             externalIndexMap,
