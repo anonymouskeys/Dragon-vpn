@@ -44,7 +44,7 @@ fun Project.setupCommon() {
         buildToolsVersion = "35.0.1"
         compileSdk = 35
         defaultConfig {
-            minSdk = 21
+            minSdk = 24
             targetSdk = 34
         }
         buildTypes {
