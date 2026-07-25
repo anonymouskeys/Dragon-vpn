@@ -119,8 +119,23 @@ object AntiDpiManager {
                     val tlsMap = tls.entries.associate {
                         it.key.toString() to it.value
                     }.toMutableMap()
-                    tlsMap["fragment"] = packets != PACKETS_TLSRECORD
-                    tlsMap["record_fragment"] = packets != PACKETS_TLSHELLO
+                    when (packets) {
+                        PACKETS_TLSHELLO -> {
+                            tlsMap["fragment"] = true
+                            tlsMap.remove("record_fragment")
+                        }
+
+                        PACKETS_TLSRECORD -> {
+                            tlsMap.remove("fragment")
+                            tlsMap["record_fragment"] = true
+                        }
+
+                        PACKETS_MIXED -> {
+                            // sing-box не принимает fragment и record_fragment одновременно
+                            tlsMap.remove("fragment")
+                            tlsMap["record_fragment"] = true
+                        }
+                    }
                     putOrRemove(tlsMap, "fragment_fallback_delay", fallbackDelay)
                     putOrRemove(tlsMap, "fragment_length", fragmentLength)
                     putOrRemove(tlsMap, "fragment_interval", fragmentInterval)
