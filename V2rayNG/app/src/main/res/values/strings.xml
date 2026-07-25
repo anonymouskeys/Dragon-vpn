@@ -494,4 +494,14 @@
     <string name="nav_logs">Logs</string>
     <string name="nav_tools">Tools</string>
     <string name="nav_documents">Documents</string>
+
+    <string name="dragon_groups_empty_title">No groups yet</string>
+    <string name="dragon_groups_empty_summary">Add a subscription group to start importing and organizing proxy profiles.</string>
+    <string name="dragon_group_add">Add group</string>
+    <string name="dragon_group_subscription">Subscription</string>
+    <string name="dragon_group_last_updated">Updated: %1$s</string>
+    <plurals name="dragon_group_proxy_count">
+        <item quantity="one">%1$d proxy</item>
+        <item quantity="other">%1$d proxies</item>
+    </plurals>
 </resources>

@@ -491,4 +491,16 @@
     <string name="nav_logs">Журналы</string>
     <string name="nav_tools">Инструменты</string>
     <string name="nav_documents">Документы</string>
+
+    <string name="dragon_groups_empty_title">Групп пока нет</string>
+    <string name="dragon_groups_empty_summary">Добавьте группу подписки, чтобы импортировать и упорядочивать прокси-профили.</string>
+    <string name="dragon_group_add">Добавить группу</string>
+    <string name="dragon_group_subscription">Подписка</string>
+    <string name="dragon_group_last_updated">Обновлено: %1$s</string>
+    <plurals name="dragon_group_proxy_count">
+        <item quantity="one">%1$d прокси</item>
+        <item quantity="few">%1$d прокси</item>
+        <item quantity="many">%1$d прокси</item>
+        <item quantity="other">%1$d прокси</item>
+    </plurals>
 </resources>

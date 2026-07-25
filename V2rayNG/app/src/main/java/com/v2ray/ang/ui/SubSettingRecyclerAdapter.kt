@@ -16,7 +16,8 @@ import com.v2ray.ang.viewmodel.SubscriptionsViewModel
 
 class SubSettingRecyclerAdapter(
     private val viewModel: SubscriptionsViewModel,
-    private val adapterListener: BaseAdapterListener?
+    private val adapterListener: BaseAdapterListener?,
+    private val onUpdate: (String, Int) -> Unit
 ) : RecyclerView.Adapter<SubSettingRecyclerAdapter.MainViewHolder>(), ItemTouchHelperAdapter {
 
     override fun getItemCount() = viewModel.getAll().size
@@ -28,8 +29,25 @@ class SubSettingRecyclerAdapter(
         holder.itemSubSettingBinding.tvName.text = subItem.remarks
         holder.itemSubSettingBinding.tvUrl.text = subItem.url
         holder.itemSubSettingBinding.chkEnable.isChecked = subItem.enabled
-        holder.itemSubSettingBinding.tvLastUpdated.text = Utils.formatTimestamp(subItem.lastUpdated)
+        holder.itemSubSettingBinding.tvLastUpdated.text = holder.itemView.context.getString(
+            R.string.dragon_group_last_updated,
+            Utils.formatTimestamp(subItem.lastUpdated)
+        )
+        val proxyCount = com.v2ray.ang.handler.MmkvManager.decodeServerList(subId).size
+        holder.itemSubSettingBinding.tvProxyCount.text = holder.itemView.context.resources.getQuantityString(
+            R.plurals.dragon_group_proxy_count,
+            proxyCount,
+            proxyCount
+        )
         holder.itemView.setBackgroundColor(Color.TRANSPARENT)
+
+        holder.itemSubSettingBinding.infoContainer.setOnClickListener {
+            adapterListener?.onEdit(subId, position)
+        }
+
+        holder.itemSubSettingBinding.layoutUpdate.setOnClickListener {
+            onUpdate(subId, position)
+        }
 
         holder.itemSubSettingBinding.layoutEdit.setOnClickListener {
             adapterListener?.onEdit(subId, position)

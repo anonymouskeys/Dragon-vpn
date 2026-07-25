@@ -43,15 +43,18 @@ class SubSettingActivity : BaseActivity() {
         //setContentView(binding.root)
         setContentViewWithToolbar(binding.root, showHomeAsUp = true, title = getString(R.string.title_sub_setting))
 
-        adapter = SubSettingRecyclerAdapter(viewModel, ActivityAdapterListener())
+        adapter = SubSettingRecyclerAdapter(viewModel, ActivityAdapterListener(), ::updateSingleSubscription)
 
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        addCustomDividerToRecyclerView(binding.recyclerView, this, R.drawable.custom_divider)
         binding.recyclerView.adapter = adapter
 
         mItemTouchHelper = ItemTouchHelper(SimpleItemTouchHelperCallback(adapter))
         mItemTouchHelper?.attachToRecyclerView(binding.recyclerView)
+
+        binding.fabAddGroup.setOnClickListener {
+            startActivity(Intent(this, SubEditActivity::class.java))
+        }
     }
 
     override fun onResume() {
@@ -105,6 +108,28 @@ class SubSettingActivity : BaseActivity() {
     fun refreshData() {
         viewModel.reload()
         adapter.notifyDataSetChanged()
+        val isEmpty = viewModel.getAll().isEmpty()
+        binding.emptyState.visibility = if (isEmpty) android.view.View.VISIBLE else android.view.View.GONE
+        binding.recyclerView.visibility = if (isEmpty) android.view.View.GONE else android.view.View.VISIBLE
+    }
+
+
+    private fun updateSingleSubscription(subId: String, position: Int) {
+        val subscription = viewModel.getAll().firstOrNull { it.guid == subId } ?: return
+        showLoading()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = AngConfigManager.updateConfigViaSub(subscription)
+            launch(Dispatchers.Main) {
+                hideLoading()
+                if (result.successCount > 0) {
+                    toast(getString(R.string.title_update_config_count, result.configCount))
+                } else {
+                    toast(getString(R.string.title_update_subscription_result, result.configCount, result.successCount, result.failureCount, result.skipCount))
+                }
+                refreshData()
+                adapter.notifyItemChanged(position)
+            }
+        }
     }
 
     private inner class ActivityAdapterListener : BaseAdapterListener {
