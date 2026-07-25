@@ -49,12 +49,25 @@ jobs:
         run: |
           set -euo pipefail
           grep -F 'anonymouskeys/Dragon-core.git' buildScript/lib/core/get_source.sh
+          grep -F 'PACKAGE_NAME=io.github.anonymouskeys.dragonvpn' nb4a.properties
+          test -s buildScript/signing/dragonvpn-test.jks.b64
           bash -n buildScript/lib/core/get_source.sh
+
+      - name: Prepare stable public test signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode buildScript/signing/dragonvpn-test.jks.b64 > release.keystore
+          cat > local.properties <<EOF
+          sdk.dir=${ANDROID_HOME}
+          KEYSTORE_PASS=dragonvpn-test
+          ALIAS_NAME=dragonvpn-test
+          ALIAS_PASS=dragonvpn-test
+          EOF
 
       - name: Prepare Android build
         run: |
           chmod +x run gradlew buildScript/lib/core/get_source.sh
-          echo "sdk.dir=${ANDROID_HOME}" > local.properties
           ./run init action gradle
 
       - name: Build libcore
@@ -76,6 +89,18 @@ jobs:
           fi
           mkdir -p artifacts
           cp "$APK" artifacts/DragonVPN-fdroid-universal-test.apk
+          EXPECTED_PACKAGE="io.github.anonymouskeys.dragonvpn.test"
+          ACTUAL_PACKAGE="$(${ANDROID_HOME}/build-tools/35.0.1/aapt dump badging artifacts/DragonVPN-fdroid-universal-test.apk | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+          if [ "$ACTUAL_PACKAGE" != "$EXPECTED_PACKAGE" ]; then
+            echo "Unexpected APK package: $ACTUAL_PACKAGE (expected $EXPECTED_PACKAGE)"
+            exit 1
+          fi
+          ${ANDROID_HOME}/build-tools/35.0.1/apksigner verify --verbose --print-certs artifacts/DragonVPN-fdroid-universal-test.apk > artifacts/DragonVPN-fdroid-universal-test.apk.cert.txt
+          {
+            echo "package=$ACTUAL_PACKAGE"
+            echo "source_repository=$GITHUB_REPOSITORY"
+            echo "source_commit=$GITHUB_SHA"
+          } > artifacts/DragonVPN-fdroid-universal-test.apk.metadata.txt
           sha256sum artifacts/DragonVPN-fdroid-universal-test.apk > artifacts/DragonVPN-fdroid-universal-test.apk.sha256
 
       - name: Upload universal APK
