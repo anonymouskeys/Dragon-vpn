@@ -6,6 +6,13 @@ on:
       - monster-base
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: monster-base-debug-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,25 +21,50 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-dependency-path: |
+            V2rayNG/**/*.gradle*
+            V2rayNG/gradle/wrapper/gradle-wrapper.properties
 
-      - name: Make Gradle executable
-        run: chmod +x V2rayNG/gradlew
+      - name: Download Xray Android library
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p V2rayNG/app/libs
+          rm -f V2rayNG/app/libs/libv2ray.aar
 
-      - name: Build debug APK
+          gh release download \
+            --repo 2dust/AndroidLibXrayLite \
+            --pattern 'libv2ray.aar' \
+            --dir V2rayNG/app/libs
+
+          test -s V2rayNG/app/libs/libv2ray.aar
+          unzip -t V2rayNG/app/libs/libv2ray.aar >/dev/null
+          echo "Downloaded libv2ray.aar:"
+          ls -lh V2rayNG/app/libs/libv2ray.aar
+
+      - name: Build F-Droid debug APK
         working-directory: V2rayNG
-        run: ./gradlew --no-daemon assembleDebug
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleFdroidDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DragonVPN-Xray-debug
-          path: V2rayNG/**/build/outputs/apk/**/*.apk
+          name: DragonVPN-Xray-fdroid-debug
+          path: V2rayNG/app/build/outputs/apk/fdroid/debug/*.apk
           if-no-files-found: error
+          retention-days: 14
