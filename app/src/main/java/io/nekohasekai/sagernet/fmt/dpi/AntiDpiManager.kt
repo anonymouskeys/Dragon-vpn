@@ -89,7 +89,8 @@ object AntiDpiManager {
     }
 
     fun apply(config: MutableMap<String, Any?>) {
-        if (!DataStore.antiDpiTlsFragment) return
+        if (!DataStore.antiDpiTlsFragment &&
+            !DataStore.antiDpiTlsRecordFragment) return
 
         val packets = normalizePackets(DataStore.antiDpiFragmentPackets) ?: PACKETS_TLSHELLO
         val fallbackDelay = normalizeFallbackDelay(DataStore.antiDpiFragmentFallbackDelay)
@@ -114,14 +115,16 @@ object AntiDpiManager {
                 @Suppress("UNCHECKED_CAST")
                 val map = value as MutableMap<String, Any?>
                 val tls = map["tls"]
-                if (tls is MutableMap<*, *>) {
-                    @Suppress("UNCHECKED_CAST")
-                    val tlsMap = tls as MutableMap<String, Any?>
+                if (tls is Map<*, *>) {
+                    val tlsMap = tls.entries.associate {
+                        it.key.toString() to it.value
+                    }.toMutableMap()
                     tlsMap["fragment"] = packets != PACKETS_TLSRECORD
                     tlsMap["record_fragment"] = packets != PACKETS_TLSHELLO
                     putOrRemove(tlsMap, "fragment_fallback_delay", fallbackDelay)
                     putOrRemove(tlsMap, "fragment_length", fragmentLength)
                     putOrRemove(tlsMap, "fragment_interval", fragmentInterval)
+                    map["tls"] = tlsMap
                 }
                 map.values.toList().forEach { child ->
                     applyRecursively(child, packets, fallbackDelay, fragmentLength, fragmentInterval)

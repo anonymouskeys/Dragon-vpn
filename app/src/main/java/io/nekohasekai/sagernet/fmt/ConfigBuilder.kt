@@ -743,7 +743,10 @@ fun buildConfig(
     }.let {
         val configMap = it.asMap()
         Util.mergeJSON(configMap, proxy.requireBean().customConfigJson)
-        if (!forTest && DataStore.antiDpiTlsFragment) {
+        if (!forTest &&
+            (DataStore.antiDpiTlsFragment ||
+             DataStore.antiDpiTlsRecordFragment)
+        ) {
             AntiDpiManager.apply(configMap)
         }
         ConfigBuildResult(
