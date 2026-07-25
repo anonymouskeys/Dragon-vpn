@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/group_share"
+        android:title="@string/dragon_group_share_subscription" />
+    <item
+        android:id="@+id/group_export_clipboard"
+        android:title="@string/dragon_group_export_clipboard" />
+    <item
+        android:id="@+id/group_clear_profiles"
+        android:title="@string/dragon_group_clear_profiles" />
+    <item
+        android:id="@+id/group_delete"
+        android:title="@string/menu_item_del_config" />
+</menu>
