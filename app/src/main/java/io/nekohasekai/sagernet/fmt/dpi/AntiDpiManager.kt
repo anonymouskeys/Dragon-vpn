@@ -96,9 +96,11 @@ object AntiDpiManager {
         val fallbackDelay = normalizeFallbackDelay(DataStore.antiDpiFragmentFallbackDelay)
             ?.let(::toCoreDuration)?.takeIf(String::isNotEmpty)
         val fragmentLength = normalizeLengthRange(DataStore.antiDpiFragmentLength)
-            ?.takeIf(String::isNotEmpty)
+            ?: DataStore.antiDpiFragmentLength.trim()
+                .takeIf { it.isNotEmpty() }
         val fragmentInterval = intervalToCore(DataStore.antiDpiFragmentInterval)
-            ?.takeIf(String::isNotEmpty)
+            ?: DataStore.antiDpiFragmentInterval.trim()
+                .takeIf { it.isNotEmpty() }
 
         applyRecursively(config, packets, fallbackDelay, fragmentLength, fragmentInterval)
     }
