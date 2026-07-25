@@ -1,0 +1,228 @@
+name: Android Universal APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-universal-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Universal APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            V2rayNG/**/*.gradle*
+            V2rayNG/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK and NDK
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;29.0.14206865"
+
+          echo "NDK_HOME=$ANDROID_HOME/ndk/29.0.14206865" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/29.0.14206865" >> "$GITHUB_ENV"
+
+      - name: Configure NDK version
+        shell: bash
+        run: |
+          FILE="V2rayNG/app/build.gradle.kts"
+
+          if ! grep -q 'ndkVersion = "29.0.14206865"' "$FILE"; then
+            sed -i '/android {/a\    ndkVersion = "29.0.14206865"' "$FILE"
+          fi
+
+      - name: Build ByeDPI native binaries
+        shell: bash
+        run: |
+          chmod +x compile-byedpi.sh
+          ./compile-byedpi.sh
+
+          for abi in arm64-v8a armeabi-v7a x86 x86_64; do
+            test -x "V2rayNG/app/libs/$abi/libciadpi.so"
+          done
+
+      - name: Cache native library
+        id: cache-hevtun
+        uses: actions/cache@v4
+        with:
+          path: libs
+          key: hevtun-${{ runner.os }}-${{ hashFiles('hev-socks5-tunnel/**', 'compile-hevtun.sh') }}
+
+      - name: Build native tunnel library
+        if: steps.cache-hevtun.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          chmod +x compile-hevtun.sh
+          ./compile-hevtun.sh
+
+      - name: Copy native libraries
+        shell: bash
+        run: |
+          mkdir -p V2rayNG/app/libs
+          cp -R libs/. V2rayNG/app/libs/
+
+      - name: Detect Xray library release
+        id: xray
+        shell: bash
+        run: |
+          cd AndroidLibXrayLite
+
+          TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+
+          if [ -z "$TAG" ]; then
+            echo "No AndroidLibXrayLite tag found"
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "AndroidLibXrayLite release: $TAG"
+
+      - name: Download libv2ray
+        uses: robinraju/release-downloader@v1.11
+        with:
+          repository: 2dust/AndroidLibXrayLite
+          tag: ${{ steps.xray.outputs.tag }}
+          fileName: libv2ray.aar
+          out-file-path: V2rayNG/app/libs
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate signing secrets
+        shell: bash
+        env:
+          APP_KEYSTORE_BASE64: ${{ secrets.APP_KEYSTORE_BASE64 }}
+          APP_KEYSTORE_PASSWORD: ${{ secrets.APP_KEYSTORE_PASSWORD }}
+          APP_KEYSTORE_ALIAS: ${{ secrets.APP_KEYSTORE_ALIAS }}
+          APP_KEY_PASSWORD: ${{ secrets.APP_KEY_PASSWORD }}
+        run: |
+          missing=0
+          for name in APP_KEYSTORE_BASE64 APP_KEYSTORE_PASSWORD APP_KEYSTORE_ALIAS APP_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name secret is missing"
+              missing=1
+            fi
+          done
+          test "$missing" -eq 0
+
+      - name: Restore signing keystore
+        shell: bash
+        env:
+          APP_KEYSTORE_BASE64: ${{ secrets.APP_KEYSTORE_BASE64 }}
+        run: |
+          umask 077
+          printf '%s' "$APP_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/monster-release.jks"
+          test -s "$RUNNER_TEMP/monster-release.jks"
+
+      - name: Build signed universal APK
+        working-directory: V2rayNG
+        shell: bash
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/monster-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.APP_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.APP_KEYSTORE_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.APP_KEY_PASSWORD }}
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          chmod +x gradlew
+
+          ./gradlew \
+            --no-daemon \
+            --stacktrace \
+            clean \
+            assembleFdroidRelease \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_FILE" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+
+      - name: Prepare only universal APK
+        id: apk
+        shell: bash
+        run: |
+          mkdir -p release
+
+          APK="$(find V2rayNG/app/build/outputs/apk/fdroid/release \
+            -maxdepth 1 \
+            -type f \
+            -name '*.apk' \
+            ! -name '*unsigned*' \
+            ! -name '*unaligned*' \
+            | head -n 1)"
+
+          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
+            echo "Universal APK was not found"
+            find V2rayNG/app/build/outputs/apk -type f -name '*.apk' -print || true
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            APK_NAME="Monster-VPN-${GITHUB_REF_NAME}-universal.apk"
+          else
+            APK_NAME="Monster-VPN-universal.apk"
+          fi
+          cp "$APK" "release/$APK_NAME"
+
+          unzip -l "release/$APK_NAME" | grep -q 'lib/arm64-v8a/libciadpi.so'
+          unzip -l "release/$APK_NAME" | grep -q 'lib/armeabi-v7a/libciadpi.so'
+          unzip -l "release/$APK_NAME" | grep -q 'lib/x86/libciadpi.so'
+          unzip -l "release/$APK_NAME" | grep -q 'lib/x86_64/libciadpi.so'
+
+          echo "path=release/$APK_NAME" >> "$GITHUB_OUTPUT"
+          sha256sum "release/$APK_NAME" \
+            | tee "release/$APK_NAME.sha256"
+
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          test -x "$APKSIGNER"
+
+          "$APKSIGNER" verify \
+            --verbose \
+            --print-certs \
+            "${{ steps.apk.outputs.path }}" \
+            | tee release/Monster-VPN-signing-certificate.txt
+
+          grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' \
+            release/Monster-VPN-signing-certificate.txt
+
+      - name: Upload universal APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Monster-VPN-universal
+          path: release/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_dpi_switch">DPI</string>
+    <string name="main_dpi_switch_description">Включить или выключить защиту ByeDPI</string>
+    <string name="title_dpi_settings">Обход DPI (ByeDPI)</string>
+    <string name="title_pref_dpi_enabled">Включить обход DPI</string>
+    <string name="summary_pref_dpi_enabled">После изменения переподключите VPN</string>
+    <string name="title_pref_dpi_strategy">Стратегия</string>
+    <string name="dpi_strategy_auto">Автоматическая</string>
+    <string name="dpi_strategy_split">Разделение запроса</string>
+    <string name="dpi_strategy_fake">Поддельные пакеты</string>
+    <string name="dpi_strategy_disorder">Перестановка пакетов</string>
+    <string name="title_pref_dpi_split_position">Позиция разделения</string>
+    <string name="title_pref_dpi_fake_ttl">TTL поддельного пакета</string>
+    <string name="title_pref_dpi_fake_count">Количество поддельных пакетов</string>
+    <string name="title_pref_dpi_delay_ms">Задержка, мс</string>
+    <string name="title_pref_dpi_ports_80_443_only">Только порты 80 и 443</string>
+    <string name="summary_pref_dpi_ports_80_443_only">Не обрабатывать подключения к другим портам</string>
+    <string name="title_pref_dpi_expert_args">Дополнительные аргументы ciadpi</string>
+    <string name="summary_pref_dpi_expert_args">Для опытных пользователей; оставьте пустым для готовых настроек</string>
+    <string name="toast_dpi_enabled">ByeDPI включён</string>
+    <string name="toast_dpi_disabled">ByeDPI выключен</string>
+    <string name="main_dpi_long_press_hint">Удерживайте, чтобы открыть настройки ByeDPI</string>
+    <string name="dpi_level_title">Уровень защиты DPI</string>
+    <string name="dpi_level_off">Выключено</string>
+    <string name="dpi_level_auto">Авто</string>
+    <string name="dpi_level_light">Лёгкий</string>
+    <string name="dpi_level_strong">Сильный</string>
+    <string name="dpi_level_maximum">Максимальный</string>
+    <string name="dpi_expert">Эксперт</string>
+    <string name="toast_dpi_level_applied">Уровень DPI применён</string>
+</resources>

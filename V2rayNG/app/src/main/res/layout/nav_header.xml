@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="220dp"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="22dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Monster VPN"
+            android:textColor="@color/ak_text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:shadowColor="#AA000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Anonymous Keys"
+            android:textColor="@color/ak_cyan"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

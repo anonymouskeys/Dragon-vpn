@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ak_background">#09070F</color>
+    <color name="ak_surface">#0E0B15</color>
+    <color name="ak_surface_raised">#171120</color>
+    <color name="ak_border">#3B2852</color>
+    <color name="ak_cyan">#33D6FF</color>
+    <color name="ak_purple">#B16CFF</color>
+    <color name="ak_text_primary">#F7F2FF</color>
+    <color name="ak_text_secondary">#B9AEC5</color>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_dpi_switch">DPI</string>
+    <string name="main_dpi_switch_description">Enable or disable ByeDPI protection</string>
+    <string name="title_dpi_settings">DPI bypass (ByeDPI)</string>
+    <string name="title_pref_dpi_enabled">Enable DPI bypass</string>
+    <string name="summary_pref_dpi_enabled">Restart the VPN connection after changing this option</string>
+    <string name="title_pref_dpi_strategy">Strategy</string>
+    <string name="dpi_strategy_auto">Automatic</string>
+    <string name="dpi_strategy_split">Split request</string>
+    <string name="dpi_strategy_fake">Fake packets</string>
+    <string name="dpi_strategy_disorder">Packet disorder</string>
+    <string name="title_pref_dpi_split_position">Split position</string>
+    <string name="title_pref_dpi_fake_ttl">Fake packet TTL</string>
+    <string name="title_pref_dpi_fake_count">Fake packet count</string>
+    <string name="title_pref_dpi_delay_ms">Delay, ms</string>
+    <string name="title_pref_dpi_ports_80_443_only">Only ports 80 and 443</string>
+    <string name="summary_pref_dpi_ports_80_443_only">Do not process connections to other ports</string>
+    <string name="title_pref_dpi_expert_args">Additional ciadpi arguments</string>
+    <string name="summary_pref_dpi_expert_args">For experienced users; leave empty for preset settings</string>
+    <string name="toast_dpi_enabled">ByeDPI enabled</string>
+    <string name="toast_dpi_disabled">ByeDPI disabled</string>
+    <string name="main_dpi_long_press_hint">Long press to open ByeDPI settings</string>
+    <string name="dpi_level_title">DPI protection level</string>
+    <string name="dpi_level_off">Off</string>
+    <string name="dpi_level_auto">Auto</string>
+    <string name="dpi_level_light">Light</string>
+    <string name="dpi_level_strong">Strong</string>
+    <string name="dpi_level_maximum">Maximum</string>
+    <string name="dpi_expert">Expert</string>
+    <string name="toast_dpi_level_applied">DPI level applied</string>
+</resources>
