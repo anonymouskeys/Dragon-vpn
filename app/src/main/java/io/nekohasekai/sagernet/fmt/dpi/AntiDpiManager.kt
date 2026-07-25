@@ -123,8 +123,18 @@ object AntiDpiManager {
                         @Suppress("UNCHECKED_CAST")
                         val tlsMap = obj as MutableMap<String, Any?>
 
+                        android.util.Log.i(
+                            "DragonDPI",
+                            "TLS FOUND BEFORE: " + tlsMap.toString()
+                        )
+
                         tlsMap["fragment"] = packets != PACKETS_TLSRECORD
                         tlsMap["record_fragment"] = packets != PACKETS_TLSHELLO
+
+                        android.util.Log.i(
+                            "DragonDPI",
+                            "TLS AFTER: " + tlsMap.toString()
+                        )
 
                         putOrRemove(
                             tlsMap,
@@ -153,9 +163,8 @@ object AntiDpiManager {
                 // VLESS/V2Ray варианты
                 applyTls(map["tls_settings"])
 
-                // stream_settings внутри некоторых outbound
-                val stream = map["stream_settings"]
-                applyTls(stream)
+                // stream_settings is not a TLS object.
+                // Do not inject fragmentation options here.
 
 
                 // рекурсивный поиск всех вложенных объектов
