@@ -523,4 +523,17 @@
     <string name="dragon_menu_tests">Tests and sorting</string>
     <string name="dragon_menu_export">Export</string>
     <string name="dragon_menu_cleanup">Cleanup</string>
+
+    <string name="dragon_group_editor_title">Group settings</string>
+    <string name="dragon_group_editor_summary">Configure the subscription, update schedule and optional proxy chain.</string>
+    <string name="dragon_group_section_basic">Subscription</string>
+    <string name="dragon_group_section_update">Updates and security</string>
+    <string name="dragon_group_section_chain">Front and landing proxy</string>
+    <string name="dragon_group_chain_summary">Select optional profiles that will be used before and after this group.</string>
+    <string name="dragon_group_paste_url">Paste</string>
+    <string name="dragon_group_clear_url">Clear</string>
+    <string name="dragon_group_filter_hint">Regular expression applied to imported profile names.</string>
+    <string name="dragon_group_never_updated">Never updated</string>
+    <string name="dragon_group_last_updated_editor">Last update: %1$s</string>
+    <string name="dragon_group_clipboard_empty">Clipboard is empty</string>
 </resources>

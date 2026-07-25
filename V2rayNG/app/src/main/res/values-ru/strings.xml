@@ -522,4 +522,17 @@
     <string name="dragon_menu_tests">Тесты и сортировка</string>
     <string name="dragon_menu_export">Экспорт</string>
     <string name="dragon_menu_cleanup">Очистка</string>
+
+    <string name="dragon_group_editor_title">Настройки группы</string>
+    <string name="dragon_group_editor_summary">Настройте подписку, расписание обновления и дополнительную цепочку прокси.</string>
+    <string name="dragon_group_section_basic">Подписка</string>
+    <string name="dragon_group_section_update">Обновление и безопасность</string>
+    <string name="dragon_group_section_chain">Входной и выходной прокси</string>
+    <string name="dragon_group_chain_summary">Выберите необязательные профили, используемые до и после этой группы.</string>
+    <string name="dragon_group_paste_url">Вставить</string>
+    <string name="dragon_group_clear_url">Очистить</string>
+    <string name="dragon_group_filter_hint">Регулярное выражение для фильтрации названий импортируемых профилей.</string>
+    <string name="dragon_group_never_updated">Ещё не обновлялась</string>
+    <string name="dragon_group_last_updated_editor">Последнее обновление: %1$s</string>
+    <string name="dragon_group_clipboard_empty">Буфер обмена пуст</string>
 </resources>

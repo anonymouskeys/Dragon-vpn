@@ -2,6 +2,8 @@ package com.v2ray.ang.ui
 import com.anonymouskeys.monstervpn.R
 import com.anonymouskeys.monstervpn.databinding.*
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Menu
@@ -9,6 +11,8 @@ import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.ImageButton
+import java.text.DateFormat
+import java.util.Date
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 import com.v2ray.ang.AppConfig
@@ -38,6 +42,7 @@ class SubEditActivity : BaseActivity() {
         setContentViewWithToolbar(binding.root, showHomeAsUp = true, title = getString(R.string.title_sub_setting))
 
         setupProfileRemarkInputs()
+        setupEditorActions()
         SettingsChangeManager.makeSetupGroupTab()
         val subItem = MmkvManager.decodeSubscription(editSubId)
         if (subItem != null) {
@@ -48,6 +53,26 @@ class SubEditActivity : BaseActivity() {
                 binding.etUrl.text = Utils.getEditable(it)
             }
         }
+    }
+
+
+    private fun setupEditorActions() {
+        binding.btnPasteUrl.setOnClickListener {
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val text = clipboard.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString().orEmpty().trim()
+            if (text.isBlank()) {
+                toast(R.string.dragon_group_clipboard_empty)
+            } else {
+                binding.etUrl.text = Utils.getEditable(text)
+            }
+        }
+        binding.btnClearUrl.setOnClickListener { binding.etUrl.text = null }
+        binding.autoUpdateCheck.setOnCheckedChangeListener { _, checked -> updateAutoUpdateUi(checked) }
+    }
+
+    private fun updateAutoUpdateUi(enabled: Boolean) {
+        binding.updateIntervalContainer.isEnabled = enabled
+        binding.updateIntervalContainer.alpha = if (enabled) 1f else 0.55f
     }
 
     /**
@@ -64,6 +89,12 @@ class SubEditActivity : BaseActivity() {
         binding.allowInsecureUrl.isChecked = subItem.allowInsecureUrl
         binding.etPreProfile.text = Utils.getEditable(subItem.prevProfile)
         binding.etNextProfile.text = Utils.getEditable(subItem.nextProfile)
+        binding.tvLastUpdated.text = if (subItem.lastUpdated > 0) {
+            getString(R.string.dragon_group_last_updated_editor, DateFormat.getDateTimeInstance().format(Date(subItem.lastUpdated)))
+        } else {
+            getString(R.string.dragon_group_never_updated)
+        }
+        updateAutoUpdateUi(subItem.autoUpdate)
         return true
     }
 
@@ -78,6 +109,8 @@ class SubEditActivity : BaseActivity() {
         binding.etUpdateInterval.text = null
         binding.etPreProfile.text = null
         binding.etNextProfile.text = null
+        binding.tvLastUpdated.setText(R.string.dragon_group_never_updated)
+        updateAutoUpdateUi(false)
         return true
     }
 
