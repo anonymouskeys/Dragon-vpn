@@ -12,7 +12,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="com.v2ray.ang.ui.ScSwitchActivity"
-            android:targetPackage="com.v2ray.ang.fdroid" />
+            android:targetPackage="com.anonymouskeys.dragonvpn.fdroid" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
     <shortcut
@@ -27,7 +27,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="com.v2ray.ang.ui.ScScannerActivity"
-            android:targetPackage="com.v2ray.ang.fdroid" />
+            android:targetPackage="com.anonymouskeys.dragonvpn.fdroid" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
     <shortcut
@@ -42,7 +42,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="com.v2ray.ang.ui.ScStartActivity"
-            android:targetPackage="com.v2ray.ang.fdroid" />
+            android:targetPackage="com.anonymouskeys.dragonvpn.fdroid" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
     <shortcut
@@ -57,7 +57,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="com.v2ray.ang.ui.ScStopActivity"
-            android:targetPackage="com.v2ray.ang.fdroid" />
+            android:targetPackage="com.anonymouskeys.dragonvpn.fdroid" />
         <categories android:name="android.shortcut.conversation" />
     </shortcut>
 </shortcuts>

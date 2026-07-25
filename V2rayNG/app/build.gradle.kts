@@ -8,7 +8,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.anonymouskeys.monstervpn"
+        applicationId = "com.anonymouskeys.dragonvpn"
         minSdk = 24
         targetSdk = 36
         versionCode = 738
