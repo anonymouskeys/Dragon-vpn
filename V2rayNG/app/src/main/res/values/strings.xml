@@ -504,4 +504,14 @@
         <item quantity="one">%1$d proxy</item>
         <item quantity="other">%1$d proxies</item>
     </plurals>
+    <string name="dragon_group_share_subscription">Share subscription</string>
+    <string name="dragon_group_export_clipboard">Export to clipboard</string>
+    <string name="dragon_group_clear_profiles">Clear profiles</string>
+    <string name="dragon_group_more_actions">More group actions</string>
+    <string name="dragon_group_import_clipboard">Import subscription from clipboard</string>
+    <string name="dragon_group_export_all">Export all subscriptions</string>
+    <string name="dragon_group_clipboard_no_url">Clipboard does not contain a valid subscription URL</string>
+    <string name="dragon_group_exported">Subscriptions copied to clipboard</string>
+    <string name="dragon_group_clear_confirm">Remove all profiles from this group? The subscription itself will be kept.</string>
+    <string name="dragon_group_cleared">Group profiles cleared</string>
 </resources>

@@ -7,6 +7,7 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.v2ray.ang.contracts.BaseAdapterListener
 import com.v2ray.ang.helper.ItemTouchHelperAdapter
@@ -17,7 +18,8 @@ import com.v2ray.ang.viewmodel.SubscriptionsViewModel
 class SubSettingRecyclerAdapter(
     private val viewModel: SubscriptionsViewModel,
     private val adapterListener: BaseAdapterListener?,
-    private val onUpdate: (String, Int) -> Unit
+    private val onUpdate: (String, Int) -> Unit,
+    private val onClearProfiles: (String, Int) -> Unit
 ) : RecyclerView.Adapter<SubSettingRecyclerAdapter.MainViewHolder>(), ItemTouchHelperAdapter {
 
     override fun getItemCount() = viewModel.getAll().size
@@ -53,8 +55,32 @@ class SubSettingRecyclerAdapter(
             adapterListener?.onEdit(subId, position)
         }
 
-        holder.itemSubSettingBinding.layoutRemove.setOnClickListener {
-            adapterListener?.onRemove(subId, position)
+        holder.itemSubSettingBinding.layoutMore.setOnClickListener { anchor ->
+            PopupMenu(anchor.context, anchor).apply {
+                menuInflater.inflate(R.menu.action_sub_group_item, menu)
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        R.id.group_share -> {
+                            adapterListener?.onShare(subItem.url)
+                            true
+                        }
+                        R.id.group_export_clipboard -> {
+                            Utils.setClipboard(anchor.context, subItem.url)
+                            true
+                        }
+                        R.id.group_clear_profiles -> {
+                            onClearProfiles(subId, position)
+                            true
+                        }
+                        R.id.group_delete -> {
+                            adapterListener?.onRemove(subId, position)
+                            true
+                        }
+                        else -> false
+                    }
+                }
+                show()
+            }
         }
 
         holder.itemSubSettingBinding.chkEnable.setOnCheckedChangeListener { it, isChecked ->
@@ -65,17 +91,14 @@ class SubSettingRecyclerAdapter(
 
         if (TextUtils.isEmpty(subItem.url)) {
             holder.itemSubSettingBinding.layoutUrl.visibility = View.GONE
-            holder.itemSubSettingBinding.layoutShare.visibility = View.INVISIBLE
+            holder.itemSubSettingBinding.layoutMore.visibility = View.VISIBLE
             holder.itemSubSettingBinding.chkEnable.visibility = View.INVISIBLE
             holder.itemSubSettingBinding.layoutLastUpdated.visibility = View.INVISIBLE
         } else {
             holder.itemSubSettingBinding.layoutUrl.visibility = View.VISIBLE
-            holder.itemSubSettingBinding.layoutShare.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.layoutMore.visibility = View.VISIBLE
             holder.itemSubSettingBinding.chkEnable.visibility = View.VISIBLE
             holder.itemSubSettingBinding.layoutLastUpdated.visibility = View.VISIBLE
-            holder.itemSubSettingBinding.layoutShare.setOnClickListener {
-                adapterListener?.onShare(subItem.url)
-            }
         }
     }
 

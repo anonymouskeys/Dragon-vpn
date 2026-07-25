@@ -11,4 +11,12 @@
         android:icon="@drawable/ic_restore_24dp"
         android:title="@string/title_sub_update"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/sub_import_clipboard"
+        android:title="@string/dragon_group_import_clipboard"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/sub_export_all"
+        android:title="@string/dragon_group_export_all"
+        app:showAsAction="never" />
 </menu>

@@ -43,7 +43,12 @@ class SubSettingActivity : BaseActivity() {
         //setContentView(binding.root)
         setContentViewWithToolbar(binding.root, showHomeAsUp = true, title = getString(R.string.title_sub_setting))
 
-        adapter = SubSettingRecyclerAdapter(viewModel, ActivityAdapterListener(), ::updateSingleSubscription)
+        adapter = SubSettingRecyclerAdapter(
+            viewModel,
+            ActivityAdapterListener(),
+            ::updateSingleSubscription,
+            ::clearGroupProfiles
+        )
 
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
@@ -70,6 +75,16 @@ class SubSettingActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         R.id.add_config -> {
             startActivity(Intent(this, SubEditActivity::class.java))
+            true
+        }
+
+        R.id.sub_import_clipboard -> {
+            importSubscriptionFromClipboard()
+            true
+        }
+
+        R.id.sub_export_all -> {
+            exportAllSubscriptions()
             true
         }
 
@@ -113,6 +128,46 @@ class SubSettingActivity : BaseActivity() {
         binding.recyclerView.visibility = if (isEmpty) android.view.View.GONE else android.view.View.VISIBLE
     }
 
+
+
+    private fun importSubscriptionFromClipboard() {
+        val url = Utils.getClipboard(this).trim()
+        if (!Utils.isValidUrl(url)) {
+            toast(R.string.dragon_group_clipboard_no_url)
+            return
+        }
+        startActivity(
+            Intent(this, SubEditActivity::class.java)
+                .putExtra("prefillUrl", url)
+        )
+    }
+
+    private fun exportAllSubscriptions() {
+        val content = viewModel.getAll()
+            .mapNotNull { cache ->
+                val item = cache.subscription
+                item.url.takeIf { it.isNotBlank() }?.let { "${item.remarks}=$it" }
+            }
+            .joinToString("\n")
+        if (content.isBlank()) {
+            toast(R.string.title_update_subscription_no_subscription)
+            return
+        }
+        Utils.setClipboard(this, content)
+        toast(R.string.dragon_group_exported)
+    }
+
+    private fun clearGroupProfiles(subId: String, position: Int) {
+        AlertDialog.Builder(this)
+            .setMessage(R.string.dragon_group_clear_confirm)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                MmkvManager.removeServerViaSubid(subId)
+                adapter.notifyItemChanged(position)
+                toast(R.string.dragon_group_cleared)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
 
     private fun updateSingleSubscription(subId: String, position: Int) {
         val subscription = viewModel.getAll().firstOrNull { it.guid == subId } ?: return

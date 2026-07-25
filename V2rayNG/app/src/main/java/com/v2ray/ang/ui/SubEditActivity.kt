@@ -44,6 +44,9 @@ class SubEditActivity : BaseActivity() {
             bindingServer(subItem)
         } else {
             clearServer()
+            intent.getStringExtra("prefillUrl")?.takeIf { it.isNotBlank() }?.let {
+                binding.etUrl.text = Utils.getEditable(it)
+            }
         }
     }
 

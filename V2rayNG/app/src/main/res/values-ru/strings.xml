@@ -503,4 +503,14 @@
         <item quantity="many">%1$d прокси</item>
         <item quantity="other">%1$d прокси</item>
     </plurals>
+    <string name="dragon_group_share_subscription">Поделиться подпиской</string>
+    <string name="dragon_group_export_clipboard">Экспорт в буфер</string>
+    <string name="dragon_group_clear_profiles">Очистить профили</string>
+    <string name="dragon_group_more_actions">Другие действия с группой</string>
+    <string name="dragon_group_import_clipboard">Импорт подписки из буфера</string>
+    <string name="dragon_group_export_all">Экспортировать все подписки</string>
+    <string name="dragon_group_clipboard_no_url">В буфере нет корректной ссылки подписки</string>
+    <string name="dragon_group_exported">Подписки скопированы в буфер</string>
+    <string name="dragon_group_clear_confirm">Удалить все профили из этой группы? Сама подписка останется.</string>
+    <string name="dragon_group_cleared">Профили группы очищены</string>
 </resources>
