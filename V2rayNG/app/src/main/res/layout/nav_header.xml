@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Monster VPN"
+            android:text="Dragon VPN"
             android:textColor="@color/ak_text_primary"
             android:textSize="28sp"
             android:textStyle="bold"

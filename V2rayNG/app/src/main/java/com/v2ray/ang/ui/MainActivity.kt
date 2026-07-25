@@ -781,15 +781,14 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
         when (item.itemId) {
+            R.id.configuration -> Unit
             R.id.sub_setting -> requestActivityLauncher.launch(Intent(this, SubSettingActivity::class.java))
             R.id.per_app_proxy_settings -> requestActivityLauncher.launch(Intent(this, PerAppProxyActivity::class.java))
             R.id.routing_setting -> requestActivityLauncher.launch(Intent(this, RoutingSettingActivity::class.java))
-            R.id.user_asset_setting -> requestActivityLauncher.launch(Intent(this, UserAssetActivity::class.java))
             R.id.settings -> requestActivityLauncher.launch(Intent(this, SettingsActivity::class.java))
-            R.id.promotion -> Utils.openUri(this, AppConfig.TG_CHANNEL_URL)
             R.id.logcat -> startActivity(Intent(this, LogcatActivity::class.java))
-            R.id.check_for_update -> startActivity(Intent(this, CheckUpdateActivity::class.java))
-            R.id.backup_restore -> requestActivityLauncher.launch(Intent(this, BackupActivity::class.java))
+            R.id.tools -> requestActivityLauncher.launch(Intent(this, BackupActivity::class.java))
+            R.id.documents -> requestActivityLauncher.launch(Intent(this, UserAssetActivity::class.java))
             R.id.about -> startActivity(Intent(this, AboutActivity::class.java))
         }
 

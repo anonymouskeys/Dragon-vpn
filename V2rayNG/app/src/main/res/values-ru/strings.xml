@@ -483,4 +483,12 @@
     </string-array>
 
     <string name="final_mask_title">FinalMask raw JSON, format: { FinalMaskObject }</string>
+
+    <!-- Оболочка Dragon/Neko -->
+    <string name="nav_configuration">Конфигурация</string>
+    <string name="nav_groups">Группы</string>
+    <string name="nav_routes">Маршруты</string>
+    <string name="nav_logs">Журналы</string>
+    <string name="nav_tools">Инструменты</string>
+    <string name="nav_documents">Документы</string>
 </resources>

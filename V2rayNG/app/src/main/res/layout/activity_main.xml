@@ -29,6 +29,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <ImageView
+                android:id="@+id/dragon_watermark"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.10"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no"
+                android:scaleType="centerCrop"
+                android:src="@drawable/dragon_watermark" />
+
             <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:id="@+id/main_content"
                 android:layout_width="match_parent"

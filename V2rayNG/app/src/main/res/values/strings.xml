@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Monster VPN</string>
+    <string name="app_name" translatable="false">Dragon VPN</string>
     <string name="app_widget_name">Switch</string>
     <string name="app_tile_name">Switch</string>
     <string name="app_tile_first_use">First use of this feature, please use the app to add server</string>
@@ -486,4 +486,12 @@
     </string-array>
 
     <string name="final_mask_title">FinalMask raw JSON, format: { FinalMaskObject }</string>
+
+    <!-- Dragon/Neko navigation shell -->
+    <string name="nav_configuration">Configuration</string>
+    <string name="nav_groups">Groups</string>
+    <string name="nav_routes">Routes</string>
+    <string name="nav_logs">Logs</string>
+    <string name="nav_tools">Tools</string>
+    <string name="nav_documents">Documents</string>
 </resources>
