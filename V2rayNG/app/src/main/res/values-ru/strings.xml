@@ -535,4 +535,10 @@
     <string name="dragon_group_never_updated">Ещё не обновлялась</string>
     <string name="dragon_group_last_updated_editor">Последнее обновление: %1$s</string>
     <string name="dragon_group_clipboard_empty">Буфер обмена пуст</string>
+    <string name="tools_fragmentation_title">Фрагментация</string>
+    <string name="tools_fragmentation_summary">Разделяет TLS-трафик на небольшие пакеты, затрудняя его фильтрацию.</string>
+    <string name="tools_dpi_title">Обход DPI · ByeDPI</string>
+    <string name="tools_maintenance_title">Обслуживание</string>
+    <string name="tools_backup_restore_title">Резервная копия и восстановление</string>
+    <string name="tools_backup_restore_summary">Экспорт, импорт и восстановление конфигурации Dragon VPN.</string>
 </resources>

@@ -165,6 +165,9 @@
             android:name="com.v2ray.ang.ui.CheckUpdateActivity"
             android:exported="false" />
         <activity
+            android:name="com.v2ray.ang.ui.ToolsActivity"
+            android:exported="false" />
+        <activity
             android:name="com.v2ray.ang.ui.BackupActivity"
             android:exported="false" />
         <activity

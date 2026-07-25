@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    tools:context=".ui.ToolsActivity">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.12"
+        android:contentDescription="@null"
+        android:scaleType="centerInside"
+        android:src="@drawable/dragon_watermark" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_tools"
+        android:name="com.v2ray.ang.ui.ToolsActivity$ToolsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

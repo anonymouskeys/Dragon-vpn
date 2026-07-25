@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/tools_fragmentation_title"
+        app:initialExpandedChildrenCount="5">
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_fragment_enabled"
+            android:summary="@string/tools_fragmentation_summary"
+            android:title="@string/title_pref_fragment_enabled" />
+
+        <ListPreference
+            android:defaultValue="tlshello"
+            android:entries="@array/fragment_packets"
+            android:entryValues="@array/fragment_packets"
+            android:key="pref_fragment_packets"
+            android:summary="%s"
+            android:title="@string/title_pref_fragment_packets" />
+
+        <EditTextPreference
+            android:defaultValue="50-100"
+            android:key="pref_fragment_length"
+            android:summary="50-100"
+            android:title="@string/title_pref_fragment_length" />
+
+        <EditTextPreference
+            android:defaultValue="10-20"
+            android:key="pref_fragment_interval"
+            android:summary="10-20"
+            android:title="@string/title_pref_fragment_interval" />
+
+        <EditTextPreference
+            android:defaultValue="10"
+            android:inputType="number"
+            android:key="pref_fragment_maxsplit"
+            android:summary="10"
+            android:title="@string/title_pref_fragment_maxsplit" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="pref_dpi_category"
+        android:title="@string/tools_dpi_title"
+        app:initialExpandedChildrenCount="8">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="pref_dpi_enabled"
+            android:summary="@string/summary_pref_dpi_enabled"
+            android:title="@string/title_pref_dpi_enabled" />
+
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/dpi_strategy_entries"
+            android:entryValues="@array/dpi_strategy_values"
+            android:key="pref_dpi_strategy"
+            android:summary="%s"
+            android:title="@string/title_pref_dpi_strategy" />
+
+        <EditTextPreference
+            android:defaultValue="1+s"
+            android:key="pref_dpi_split_position"
+            android:summary="1+s"
+            android:title="@string/title_pref_dpi_split_position" />
+
+        <EditTextPreference
+            android:defaultValue="8"
+            android:inputType="number"
+            android:key="pref_dpi_fake_ttl"
+            android:summary="8"
+            android:title="@string/title_pref_dpi_fake_ttl" />
+
+        <EditTextPreference
+            android:defaultValue="1"
+            android:inputType="number"
+            android:key="pref_dpi_fake_count"
+            android:summary="1"
+            android:title="@string/title_pref_dpi_fake_count" />
+
+        <EditTextPreference
+            android:defaultValue="0"
+            android:inputType="number"
+            android:key="pref_dpi_delay_ms"
+            android:summary="0"
+            android:title="@string/title_pref_dpi_delay_ms" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_dpi_ports_80_443_only"
+            android:summary="@string/summary_pref_dpi_ports_80_443_only"
+            android:title="@string/title_pref_dpi_ports_80_443_only" />
+
+        <EditTextPreference
+            android:key="pref_dpi_expert_args"
+            android:summary="@string/summary_pref_dpi_expert_args"
+            android:title="@string/title_pref_dpi_expert_args" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/tools_maintenance_title">
+        <Preference
+            android:icon="@drawable/ic_restore_24dp"
+            android:key="tools_backup_restore"
+            android:summary="@string/tools_backup_restore_summary"
+            android:title="@string/tools_backup_restore_title" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -787,7 +787,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             R.id.routing_setting -> requestActivityLauncher.launch(Intent(this, RoutingSettingActivity::class.java))
             R.id.settings -> requestActivityLauncher.launch(Intent(this, SettingsActivity::class.java))
             R.id.logcat -> startActivity(Intent(this, LogcatActivity::class.java))
-            R.id.tools -> requestActivityLauncher.launch(Intent(this, BackupActivity::class.java))
+            R.id.tools -> requestActivityLauncher.launch(Intent(this, ToolsActivity::class.java))
             R.id.documents -> requestActivityLauncher.launch(Intent(this, UserAssetActivity::class.java))
             R.id.about -> startActivity(Intent(this, AboutActivity::class.java))
         }

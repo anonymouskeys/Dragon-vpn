@@ -536,4 +536,10 @@
     <string name="dragon_group_never_updated">Never updated</string>
     <string name="dragon_group_last_updated_editor">Last update: %1$s</string>
     <string name="dragon_group_clipboard_empty">Clipboard is empty</string>
+    <string name="tools_fragmentation_title">Fragmentation</string>
+    <string name="tools_fragmentation_summary">Split TLS traffic into smaller packets to make filtering more difficult.</string>
+    <string name="tools_dpi_title">DPI bypass · ByeDPI</string>
+    <string name="tools_maintenance_title">Maintenance</string>
+    <string name="tools_backup_restore_title">Backup and restore</string>
+    <string name="tools_backup_restore_summary">Export, import, or restore Dragon VPN configuration.</string>
 </resources>
