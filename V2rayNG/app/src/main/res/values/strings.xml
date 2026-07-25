@@ -542,4 +542,6 @@
     <string name="tools_maintenance_title">Maintenance</string>
     <string name="tools_backup_restore_title">Backup and restore</string>
     <string name="tools_backup_restore_summary">Export, import, or restore Dragon VPN configuration.</string>
+    <string name="title_pref_allow_insecure">Always allow insecure TLS</string>
+    <string name="summary_pref_allow_insecure">Skip certificate verification for all TLS profiles. Use only when the proxy certificate cannot be verified.</string>
 </resources>

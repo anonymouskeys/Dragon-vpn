@@ -15,6 +15,7 @@ import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.isNotNullEmpty
 import com.v2ray.ang.fmt.CustomFmt
 import com.v2ray.ang.fmt.Hysteria2Fmt
+import com.v2ray.ang.fmt.HttpFmt
 import com.v2ray.ang.fmt.ShadowsocksFmt
 import com.v2ray.ang.fmt.SocksFmt
 import com.v2ray.ang.fmt.TrojanFmt
@@ -42,7 +43,9 @@ object AngConfigManager {
             EConfigType.VLESS.protocolScheme to VlessFmt::parse,
             EConfigType.WIREGUARD.protocolScheme to WireguardFmt::parse,
             EConfigType.HYSTERIA2.protocolScheme to Hysteria2Fmt::parse,
-            AppConfig.HY2 to Hysteria2Fmt::parse
+            AppConfig.HY2 to Hysteria2Fmt::parse,
+            AppConfig.HTTPS to HttpFmt::parse,
+            AppConfig.HTTP to HttpFmt::parse
         )
     }
 
@@ -150,6 +153,9 @@ object AngConfigManager {
         try {
             val config = MmkvManager.decodeServerConfig(guid) ?: return ""
 
+            if (config.configType == EConfigType.HTTP) {
+                return HttpFmt.toUri(config)
+            }
             return config.configType.protocolScheme + when (config.configType) {
                 EConfigType.VMESS -> VmessFmt.toUri(config)
                 EConfigType.SHADOWSOCKS -> ShadowsocksFmt.toUri(config)
@@ -175,9 +181,9 @@ object AngConfigManager {
      * @return A pair containing the number of configurations and subscriptions imported.
      */
     fun importBatchConfig(server: String?, subid: String, append: Boolean): Pair<Int, Int> {
-        var count = parseBatchConfig(Utils.decode(server), subid, append)
+        var count = parseBatchConfig(SubscriptionContentParser.normalize(Utils.decode(server)), subid, append)
         if (count <= 0) {
-            count = parseBatchConfig(server, subid, append)
+            count = parseBatchConfig(SubscriptionContentParser.normalize(server), subid, append)
         }
         if (count <= 0) {
             count = parseCustomConfigServer(server, subid, append)
@@ -239,9 +245,12 @@ object AngConfigManager {
 
             val subItem = MmkvManager.decodeSubscription(subid)
 
-            // Parse all configs first (no I/O during parsing)
-            val configs = mutableListOf<ProfileItem>()
-            servers.lines()
+            // Normalize HTML-escaped feeds and parse Clash YAML before URI lines.
+            val normalized = SubscriptionContentParser.normalize(servers)
+            val configs = SubscriptionContentParser.parseClash(normalized).toMutableList()
+            normalized.lines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
                 .distinct()
                 .reversed()
                 .forEach {
@@ -614,9 +623,9 @@ object AngConfigManager {
      * @return The number of configurations parsed.
      */
     private fun parseConfigViaSub(server: String?, subid: String, append: Boolean): Int {
-        var count = parseBatchConfig(Utils.decode(server), subid, append)
+        var count = parseBatchConfig(SubscriptionContentParser.normalize(Utils.decode(server)), subid, append)
         if (count <= 0) {
-            count = parseBatchConfig(server, subid, append)
+            count = parseBatchConfig(SubscriptionContentParser.normalize(server), subid, append)
         }
         if (count <= 0) {
             count = parseCustomConfigServer(server, subid, append)

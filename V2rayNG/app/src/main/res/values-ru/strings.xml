@@ -541,4 +541,6 @@
     <string name="tools_maintenance_title">Обслуживание</string>
     <string name="tools_backup_restore_title">Резервная копия и восстановление</string>
     <string name="tools_backup_restore_summary">Экспорт, импорт и восстановление конфигурации Dragon VPN.</string>
+    <string name="title_pref_allow_insecure">Всегда разрешать небезопасные</string>
+    <string name="summary_pref_allow_insecure">Отключать проверку сертификата для всех TLS-профилей. Используйте только для прокси с непроверяемым сертификатом.</string>
 </resources>

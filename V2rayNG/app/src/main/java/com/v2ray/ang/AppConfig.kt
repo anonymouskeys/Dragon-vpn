@@ -92,6 +92,7 @@ object AppConfig {
     const val PREF_DPI_DELAY_MS = "pref_dpi_delay_ms"
     const val PREF_DPI_PORTS_80_443_ONLY = "pref_dpi_ports_80_443_only"
     const val PREF_DPI_EXPERT_ARGS = "pref_dpi_expert_args"
+    const val PREF_ALLOW_INSECURE = "pref_allow_insecure"
 
     /** Cache keys. */
     const val CACHE_SUBSCRIPTION_ID = "cache_subscription_id"
@@ -198,6 +199,7 @@ object AppConfig {
     const val SOCKS4 = "socks4://"
     const val SOCKS5 = "socks5://"
     const val HTTP = "http://"
+    const val HTTPS = "https://"
     const val VLESS = "vless://"
     const val TROJAN = "trojan://"
     const val WIREGUARD = "wireguard://"

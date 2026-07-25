@@ -31,6 +31,7 @@ class SettingsActivity : BaseActivity() {
         private val localDns by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_LOCAL_DNS_ENABLED) }
         private val fakeDns by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_FAKE_DNS_ENABLED) }
         private val appendHttpProxy by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_APPEND_HTTP_PROXY) }
+        private val allowInsecure by lazy { findPreference<SwitchPreferenceCompat>(AppConfig.PREF_ALLOW_INSECURE) }
 
         //        private val localDnsPort by lazy { findPreference<EditTextPreference>(AppConfig.PREF_LOCAL_DNS_PORT) }
         private val vpnDns by lazy { findPreference<EditTextPreference>(AppConfig.PREF_VPN_DNS) }
@@ -85,6 +86,11 @@ class SettingsActivity : BaseActivity() {
 
             localDns?.setOnPreferenceChangeListener { _, any ->
                 updateLocalDns(any as Boolean)
+                true
+            }
+
+            allowInsecure?.setOnPreferenceChangeListener { _, _ ->
+                SettingsChangeManager.makeRestartService()
                 true
             }
 

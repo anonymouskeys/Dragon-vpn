@@ -216,6 +216,12 @@ object CoreOutboundBuilder {
             }
         }
 
+        if (profileItem.security == AppConfig.TLS) {
+            outboundBean?.streamSettings?.let {
+                populateTlsSettings(it, profileItem, profileItem.server)
+            }
+        }
+
         return outboundBean
     }
 
@@ -229,6 +235,12 @@ object CoreOutboundBuilder {
             if (profileItem.username.isNotNullEmpty()) {
                 settings.user = profileItem.username.orEmpty()
                 settings.pass = profileItem.password.orEmpty()
+            }
+        }
+
+        if (profileItem.security == AppConfig.TLS) {
+            outboundBean?.streamSettings?.let {
+                populateTlsSettings(it, profileItem, profileItem.server)
             }
         }
 
@@ -540,7 +552,9 @@ object CoreOutboundBuilder {
      */
     fun populateTlsSettings(streamSettings: OutboundBean.StreamSettingsBean, profileItem: ProfileItem, sniExt: String?) {
         val streamSecurity = profileItem.security.orEmpty()
-        val allowInsecure = profileItem.insecure == true && profileItem.pinnedCA256.isNullOrEmpty()
+        val allowInsecure = (profileItem.insecure == true ||
+                MmkvManager.decodeSettingsBool(AppConfig.PREF_ALLOW_INSECURE, false)) &&
+                profileItem.pinnedCA256.isNullOrEmpty()
         val sni = if (profileItem.sni.isNullOrEmpty()) {
             when {
                 sniExt.isNotNullEmpty() && Utils.isDomainName(sniExt) -> sniExt
