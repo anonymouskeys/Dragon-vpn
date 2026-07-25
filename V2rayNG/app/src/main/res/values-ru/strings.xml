@@ -513,4 +513,13 @@
     <string name="dragon_group_exported">Подписки скопированы в буфер</string>
     <string name="dragon_group_clear_confirm">Удалить все профили из этой группы? Сама подписка останется.</string>
     <string name="dragon_group_cleared">Профили группы очищены</string>
+    <string name="dragon_empty_group">В этой группе нет профилей</string>
+    <string name="dragon_empty_group_hint">Добавьте профиль или обновите подписку</string>
+    <string name="dragon_menu_import_add">Импортировать или добавить</string>
+    <string name="dragon_menu_create_manual">Создать вручную</string>
+    <string name="dragon_import_from_file">Импорт из файла</string>
+    <string name="dragon_export_all_to_file">Экспортировать всё в файл</string>
+    <string name="dragon_menu_tests">Тесты и сортировка</string>
+    <string name="dragon_menu_export">Экспорт</string>
+    <string name="dragon_menu_cleanup">Очистка</string>
 </resources>

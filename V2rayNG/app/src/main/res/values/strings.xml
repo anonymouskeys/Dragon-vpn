@@ -514,4 +514,13 @@
     <string name="dragon_group_exported">Subscriptions copied to clipboard</string>
     <string name="dragon_group_clear_confirm">Remove all profiles from this group? The subscription itself will be kept.</string>
     <string name="dragon_group_cleared">Group profiles cleared</string>
+    <string name="dragon_empty_group">No profiles in this group</string>
+    <string name="dragon_empty_group_hint">Add a profile or update the subscription</string>
+    <string name="dragon_menu_import_add">Import or add</string>
+    <string name="dragon_menu_create_manual">Create manually</string>
+    <string name="dragon_import_from_file">Import from file</string>
+    <string name="dragon_export_all_to_file">Export all to file</string>
+    <string name="dragon_menu_tests">Tests and sorting</string>
+    <string name="dragon_menu_export">Export</string>
+    <string name="dragon_menu_cleanup">Cleanup</string>
 </resources>

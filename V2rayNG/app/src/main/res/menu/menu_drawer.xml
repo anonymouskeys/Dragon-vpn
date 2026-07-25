@@ -47,9 +47,5 @@
             android:id="@+id/about"
             android:icon="@drawable/ic_about_24dp"
             android:title="@string/title_about" />
-        <item
-            android:id="@+id/placeholder"
-            android:enabled="false"
-            android:title="" />
     </group>
 </menu>

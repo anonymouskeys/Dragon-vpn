@@ -78,10 +78,9 @@ class GroupServerFragment : BaseFragment<FragmentGroupServerBinding>(),
         itemTouchHelper = ItemTouchHelper(SimpleItemTouchHelperCallback(adapter, allowSwipe = false))
         itemTouchHelper?.attachToRecyclerView(binding.recyclerView)
 
-        binding.refreshLayout.isEnabled = false
-//        binding.refreshLayout.setOnRefreshListener(this)
-//        // Set the distance to trigger sync to 160dp
-//        binding.refreshLayout.setDistanceToTriggerSync((160 * resources.displayMetrics.density).toInt())
+        binding.refreshLayout.isEnabled = true
+        binding.refreshLayout.setOnRefreshListener(this)
+        binding.refreshLayout.setDistanceToTriggerSync((120 * resources.displayMetrics.density).toInt())
 
         mainViewModel.updateListAction.observe(viewLifecycleOwner) { index ->
             if (mainViewModel.subscriptionId != subId) {
@@ -89,6 +88,8 @@ class GroupServerFragment : BaseFragment<FragmentGroupServerBinding>(),
             }
             // LogUtil.d(TAG, "GroupServerFragment updateListAction subId=$subId")
             adapter.setData(mainViewModel.serversCache, index)
+            binding.refreshLayout.isRefreshing = false
+            binding.emptyState.visibility = if (mainViewModel.serversCache.isEmpty()) View.VISIBLE else View.GONE
         }
 
         // LogUtil.d(TAG, "GroupServerFragment onViewCreated: subId=$subId")
@@ -287,7 +288,11 @@ class GroupServerFragment : BaseFragment<FragmentGroupServerBinding>(),
 
     override fun onRefresh() {
         ownerActivity.importConfigViaSub()
-        //binding.refreshLayout.isRefreshing = false
+        binding.refreshLayout.postDelayed({
+            if (binding.refreshLayout.isRefreshing) {
+                binding.refreshLayout.isRefreshing = false
+            }
+        }, 10_000)
     }
 
     /**
