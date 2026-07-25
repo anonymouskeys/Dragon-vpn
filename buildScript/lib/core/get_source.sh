@@ -2,7 +2,6 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-CORE_PATCH="$PROJECT_ROOT/buildScript/lib/core/patch_sing_box.py"
 
 source "$PROJECT_ROOT/buildScript/init/env.sh"
 ENV_NB4A=1
@@ -11,16 +10,19 @@ pushd ..
 
 ####
 
-if [ ! -d "sing-box" ]; then
-  git clone --no-checkout https://github.com/MatsuriDayo/sing-box.git
+DRAGON_CORE_REPOSITORY="${DRAGON_CORE_REPOSITORY:-https://github.com/anonymouskeys/Dragon-core.git}"
+DRAGON_CORE_REVISION="${DRAGON_CORE_REVISION:-main}"
+
+if [ ! -d "sing-box/.git" ]; then
+  rm -rf sing-box
+  git clone --no-checkout "$DRAGON_CORE_REPOSITORY" sing-box
 fi
 pushd sing-box
-git checkout "$COMMIT_SING_BOX"
-if [ ! -f "$CORE_PATCH" ]; then
-  echo "Missing core patch: $CORE_PATCH" >&2
-  exit 1
-fi
-python3 "$CORE_PATCH"
+git remote set-url origin "$DRAGON_CORE_REPOSITORY"
+git fetch --depth=1 origin "$DRAGON_CORE_REVISION"
+git checkout --detach FETCH_HEAD
+printf 'Using Dragon-core revision: '
+git rev-parse HEAD
 popd
 
 ####

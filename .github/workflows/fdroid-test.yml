@@ -45,12 +45,11 @@ jobs:
           go-version: '1.25.x'
           cache-dependency-path: libcore/go.sum
 
-      - name: Validate core patch inputs
+      - name: Validate Dragon-core source
         run: |
           set -euo pipefail
-          test -f buildScript/lib/core/patch_sing_box.py
-          python3 -m py_compile buildScript/lib/core/patch_sing_box.py
-          grep -F 'COMMIT_SING_BOX=' buildScript/lib/core/get_source_env.sh
+          grep -F 'anonymouskeys/Dragon-core.git' buildScript/lib/core/get_source.sh
+          bash -n buildScript/lib/core/get_source.sh
 
       - name: Prepare Android build
         run: |

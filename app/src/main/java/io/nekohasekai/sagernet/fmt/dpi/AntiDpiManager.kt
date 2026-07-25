@@ -3,47 +3,87 @@ package io.nekohasekai.sagernet.fmt.dpi
 import io.nekohasekai.sagernet.database.DataStore
 
 /**
- * Applies the Anti-DPI options to generated sing-box TLS objects.
+ * Applies user-controlled Anti-DPI options to generated sing-box TLS objects.
  *
- * The configuration tree is modified structurally; no regular-expression or
- * string replacement is used.
+ * Empty custom values are deliberately preserved as "not configured". In that
+ * case Dragon-core keeps its native SNI-aware fragmentation behavior instead
+ * of silently forcing a country-specific or hard-coded preset.
  */
 object AntiDpiManager {
 
-    private val durationPattern = Regex("^[1-9][0-9]*(ms|s|m)$")
+    private const val MAX_FRAGMENT_LENGTH = 65535
     private val lengthRangePattern = Regex("^[1-9][0-9]*(-[1-9][0-9]*)?$")
-    private val intervalRangePattern = Regex("^(0|[1-9][0-9]*(ms|s|m))(-(0|[1-9][0-9]*(ms|s|m)))?$")
+    private val durationTokenPattern = Regex("^(0|[0-9]+(?:\\.[0-9]+)?(?:ns|us|µs|ms|s|m|h))$")
 
-    /**
-     * Returns a normalized sing-box duration, or null when the input is invalid.
-     */
     fun normalizeFallbackDelay(value: String): String? {
-        val normalized = value.trim().lowercase()
-        return normalized.takeIf(durationPattern::matches)
+        if (value.isBlank()) return ""
+        val normalized = normalizeDurationToken(value)
+        return normalized?.takeIf { it != "0" }
     }
 
+    /** Empty means: use Dragon-core's native SNI-aware split positions. */
     fun normalizeLengthRange(value: String): String? {
         val normalized = value.trim().replace(" ", "")
+        if (normalized.isEmpty()) return ""
         if (!lengthRangePattern.matches(normalized)) return null
-        val values = normalized.split("-").map(String::toInt)
-        return normalized.takeIf { values.size == 1 || values[0] <= values[1] }
-    }
-
-    fun normalizeIntervalRange(value: String): String? {
-        val normalized = value.trim().lowercase().replace(" ", "")
-        if (!intervalRangePattern.matches(normalized)) return null
+        val values = normalized.split("-").map(String::toIntOrNull)
+        if (values.any { it == null }) return null
+        val minimum = values[0]!!
+        val maximum = if (values.size == 1) minimum else values[1]!!
+        if (minimum > maximum || maximum > MAX_FRAGMENT_LENGTH) return null
         return normalized
     }
 
+    /** Empty means: use fragment_fallback_delay between packet fragments. */
+    fun normalizeIntervalRange(value: String): String? {
+        val normalized = value.trim().lowercase().replace(" ", "")
+        if (normalized.isEmpty()) return ""
+        val parts = normalized.split("-", limit = 2)
+        val minimum = normalizeDurationToken(parts[0]) ?: return null
+        val maximum = normalizeDurationToken(parts.getOrElse(1) { parts[0] }) ?: return null
+        if (durationToNanoseconds(minimum) > durationToNanoseconds(maximum)) return null
+        return if (parts.size == 1) minimum else "$minimum-$maximum"
+    }
+
+    private fun normalizeDurationToken(value: String): String? {
+        val normalized = value.trim().lowercase().replace(" ", "")
+        return normalized.takeIf(durationTokenPattern::matches)
+    }
+
+    private fun durationToNanoseconds(value: String): Double {
+        if (value == "0") return 0.0
+        val unit = listOf("ns", "us", "µs", "ms", "s", "m", "h")
+            .first { value.endsWith(it) }
+        val number = value.removeSuffix(unit).toDouble()
+        val multiplier = when (unit) {
+            "ns" -> 1.0
+            "us", "µs" -> 1_000.0
+            "ms" -> 1_000_000.0
+            "s" -> 1_000_000_000.0
+            "m" -> 60_000_000_000.0
+            "h" -> 3_600_000_000_000.0
+            else -> error("Unsupported duration unit")
+        }
+        return number * multiplier
+    }
+
     fun apply(config: MutableMap<String, Any?>) {
+        if (!DataStore.antiDpiTlsFragment) return
+
         val fallbackDelay = normalizeFallbackDelay(DataStore.antiDpiFragmentFallbackDelay)
-            ?: "500ms"
-        val fragmentLength = normalizeLengthRange(DataStore.antiDpiFragmentLength) ?: "1-10"
-        val fragmentInterval = normalizeIntervalRange(DataStore.antiDpiFragmentInterval) ?: "0-5ms"
+            ?.takeIf(String::isNotEmpty)
+        val fragmentLength = normalizeLengthRange(DataStore.antiDpiFragmentLength)
+        val fragmentInterval = normalizeIntervalRange(DataStore.antiDpiFragmentInterval)
+
         applyRecursively(config, fallbackDelay, fragmentLength, fragmentInterval)
     }
 
-    private fun applyRecursively(value: Any?, fallbackDelay: String, fragmentLength: String, fragmentInterval: String) {
+    private fun applyRecursively(
+        value: Any?,
+        fallbackDelay: String?,
+        fragmentLength: String?,
+        fragmentInterval: String?,
+    ) {
         when (value) {
             is MutableMap<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
@@ -55,9 +95,9 @@ object AntiDpiManager {
                     val tlsMap = tls as MutableMap<String, Any?>
                     tlsMap["fragment"] = true
                     tlsMap["record_fragment"] = DataStore.antiDpiTlsRecordFragment
-                    tlsMap["fragment_fallback_delay"] = fallbackDelay
-                    tlsMap["fragment_length"] = fragmentLength
-                    tlsMap["fragment_interval"] = fragmentInterval
+                    putOrRemove(tlsMap, "fragment_fallback_delay", fallbackDelay)
+                    putOrRemove(tlsMap, "fragment_length", fragmentLength?.takeIf(String::isNotEmpty))
+                    putOrRemove(tlsMap, "fragment_interval", fragmentInterval?.takeIf(String::isNotEmpty))
                 }
 
                 map.values.toList().forEach { child ->
@@ -73,5 +113,9 @@ object AntiDpiManager {
                 applyRecursively(child, fallbackDelay, fragmentLength, fragmentInterval)
             }
         }
+    }
+
+    private fun putOrRemove(map: MutableMap<String, Any?>, key: String, value: String?) {
+        if (value == null) map.remove(key) else map[key] = value
     }
 }
