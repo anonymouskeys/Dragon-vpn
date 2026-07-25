@@ -111,45 +111,85 @@ object AntiDpiManager {
         fragmentInterval: String?,
     ) {
         when (value) {
+
             is MutableMap<*, *> -> {
+
                 @Suppress("UNCHECKED_CAST")
                 val map = value as MutableMap<String, Any?>
-                val tls = map["tls"]
-                if (tls is Map<*, *>) {
-                    val tlsMap = tls.entries.associate {
-                        it.key.toString() to it.value
-                    }.toMutableMap()
-                    when (packets) {
-                        PACKETS_TLSHELLO -> {
-                            tlsMap["fragment"] = true
-                            tlsMap.remove("record_fragment")
-                        }
 
-                        PACKETS_TLSRECORD -> {
-                            tlsMap.remove("fragment")
-                            tlsMap["record_fragment"] = true
-                        }
+                fun applyTls(obj: Any?) {
+                    if (obj is MutableMap<*, *>) {
 
-                        PACKETS_MIXED -> {
-                            // sing-box не принимает fragment и record_fragment одновременно
-                            tlsMap.remove("fragment")
-                            tlsMap["record_fragment"] = true
-                        }
+                        @Suppress("UNCHECKED_CAST")
+                        val tlsMap = obj as MutableMap<String, Any?>
+
+                        tlsMap["fragment"] = packets != PACKETS_TLSRECORD
+                        tlsMap["record_fragment"] = packets != PACKETS_TLSHELLO
+
+                        putOrRemove(
+                            tlsMap,
+                            "fragment_fallback_delay",
+                            fallbackDelay
+                        )
+
+                        putOrRemove(
+                            tlsMap,
+                            "fragment_length",
+                            fragmentLength
+                        )
+
+                        putOrRemove(
+                            tlsMap,
+                            "fragment_interval",
+                            fragmentInterval
+                        )
                     }
-                    putOrRemove(tlsMap, "fragment_fallback_delay", fallbackDelay)
-                    putOrRemove(tlsMap, "fragment_length", fragmentLength)
-                    putOrRemove(tlsMap, "fragment_interval", fragmentInterval)
-                    map["tls"] = tlsMap
                 }
-                map.values.toList().forEach { child ->
-                    applyRecursively(child, packets, fallbackDelay, fragmentLength, fragmentInterval)
+
+
+                // обычный sing-box TLS
+                applyTls(map["tls"])
+
+                // VLESS/V2Ray варианты
+                applyTls(map["tls_settings"])
+
+                // stream_settings внутри некоторых outbound
+                val stream = map["stream_settings"]
+                applyTls(stream)
+
+
+                // рекурсивный поиск всех вложенных объектов
+                map.values.toList().forEach {
+                    applyRecursively(
+                        it,
+                        packets,
+                        fallbackDelay,
+                        fragmentLength,
+                        fragmentInterval
+                    )
                 }
             }
-            is Iterable<*> -> value.forEach { child ->
-                applyRecursively(child, packets, fallbackDelay, fragmentLength, fragmentInterval)
+
+
+            is Iterable<*> -> value.forEach {
+                applyRecursively(
+                    it,
+                    packets,
+                    fallbackDelay,
+                    fragmentLength,
+                    fragmentInterval
+                )
             }
-            is Array<*> -> value.forEach { child ->
-                applyRecursively(child, packets, fallbackDelay, fragmentLength, fragmentInterval)
+
+
+            is Array<*> -> value.forEach {
+                applyRecursively(
+                    it,
+                    packets,
+                    fallbackDelay,
+                    fragmentLength,
+                    fragmentInterval
+                )
             }
         }
     }
