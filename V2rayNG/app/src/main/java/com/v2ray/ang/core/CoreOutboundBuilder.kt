@@ -9,6 +9,7 @@ import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.enums.NetworkType
 import com.v2ray.ang.extension.isNotNullEmpty
 import com.v2ray.ang.extension.nullIfBlank
+import com.v2ray.ang.handler.CertificateFingerprintManager
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.util.HttpUtil
 import com.v2ray.ang.util.JsonUtil
@@ -618,13 +619,25 @@ object CoreOutboundBuilder {
 
         streamSettings.security = streamSecurity.nullIfBlank()
         if (streamSettings.security == null) return
+        val effectivePinnedCert = profileItem.pinnedCA256.nullIfBlank()
+            ?: if (streamSecurity == AppConfig.TLS && insecureRequested) {
+                CertificateFingerprintManager.fetchForRuntime(profileItem)?.also {
+                    // Keep it on the in-memory profile too, so repeated config builds in
+                    // the same process do not need another certificate probe.
+                    profileItem.pinnedCA256 = it
+                    LogUtil.i(AppConfig.TAG, "Pinned TLS peer certificate for '${profileItem.remarks}'")
+                }
+            } else {
+                null
+            }
+
         val tlsSetting = OutboundBean.StreamSettingsBean.TlsSettingsBean(
             serverName = sni.nullIfBlank(),
             fingerprint = profileItem.fingerPrint.nullIfBlank(),
             alpn = profileItem.alpn?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.takeIf { !it.isNullOrEmpty() },
             echConfigList = profileItem.echConfigList.nullIfBlank(),
             verifyPeerCertByName = profileItem.verifyPeerCertByName.nullIfBlank(),
-            pinnedPeerCertSha256 = profileItem.pinnedCA256.nullIfBlank(),
+            pinnedPeerCertSha256 = effectivePinnedCert,
             publicKey = profileItem.publicKey.nullIfBlank(),
             shortId = profileItem.shortId.nullIfBlank(),
             spiderX = profileItem.spiderX.nullIfBlank(),
@@ -633,11 +646,11 @@ object CoreOutboundBuilder {
         if (streamSettings.security == AppConfig.TLS) {
             streamSettings.tlsSettings = tlsSetting
             streamSettings.realitySettings = null
-            if (insecureRequested && profileItem.pinnedCA256.isNullOrEmpty()) {
+            if (insecureRequested && effectivePinnedCert.isNullOrEmpty()) {
                 LogUtil.w(
                     AppConfig.TAG,
-                    "TLS profile '${profileItem.remarks}' requested legacy insecure mode; " +
-                            "Xray 26.7+ removed allowInsecure, using normal certificate verification"
+                    "Unable to fetch TLS certificate pin for '${profileItem.remarks}'; " +
+                            "falling back to normal certificate verification"
                 )
             }
         } else if (streamSettings.security == AppConfig.REALITY) {

@@ -10,9 +10,38 @@ import com.v2ray.ang.util.JsonUtil
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.Utils
 import libv2ray.Libv2ray
+import java.util.concurrent.ConcurrentHashMap
 
 object CertificateFingerprintManager {
     private const val TIMEOUT_MS = 5000L
+    private val runtimeCache = ConcurrentHashMap<String, String>()
+
+    /**
+     * Converts the legacy "insecure" intent into Xray 26.7 compatible TOFU pinning.
+     * The native helper reads the peer certificate without relying on hostname
+     * verification, then Xray verifies subsequent connections by SHA-256 pin.
+     */
+    fun fetchForRuntime(profile: ProfileItem): String? {
+        val request = buildRequest(profile) ?: return null
+        val cacheKey = buildString {
+            append(if (profile.configType == EConfigType.HYSTERIA2) "quic" else "tls")
+            append('|').append(request.address)
+            append(':').append(request.port)
+            append('|').append(request.serverName.orEmpty())
+        }
+        runtimeCache[cacheKey]?.let { return it }
+
+        val result = if (profile.configType == EConfigType.HYSTERIA2) {
+            fetch("quic", request) { Libv2ray.fetchQuicCertSha256(it) }
+        } else {
+            fetch("tls", request) { Libv2ray.fetchTlsCertSha256(it) }
+        }
+        return result
+            ?.takeIf { it.error.isBlank() }
+            ?.sha256
+            ?.takeIf { it.isNotBlank() }
+            ?.also { runtimeCache[cacheKey] = it }
+    }
 
     fun fetchForManualFill(profile: ProfileItem): String? {
         val request = buildRequest(profile) ?: return null
