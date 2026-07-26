@@ -232,7 +232,49 @@ object MmkvManager {
         }
         profileFullStorage.remove(guid)
         serverAffStorage.remove(guid)
+        serverRawStorage.remove(guid)
         profileTrafficStorage.remove(guid)
+    }
+
+    /**
+     * Removes many server configurations while rewriting each affected subscription list once.
+     * Calling [removeServer] repeatedly is quadratic for large subscriptions because every call
+     * decodes and re-encodes the complete GUID list.
+     *
+     * @param guids Server GUIDs to remove.
+     * @return Number of existing profile records removed.
+     */
+    fun removeServers(guids: Collection<String>): Int {
+        val requested = guids.asSequence().filter { it.isNotBlank() }.toHashSet()
+        if (requested.isEmpty()) return 0
+
+        val bySubscription = HashMap<String, MutableSet<String>>()
+        requested.forEach { guid ->
+            val config = decodeServerConfig(guid) ?: return@forEach
+            val subId = getSubscriptionId(config.subscriptionId)
+            bySubscription.getOrPut(subId) { HashSet() }.add(guid)
+        }
+
+        bySubscription.forEach { (subId, groupGuids) ->
+            val serverList = decodeServerList(subId)
+            if (serverList.removeAll(groupGuids)) {
+                encodeServerList(serverList, subId)
+            }
+        }
+
+        val selected = getSelectServer()
+        var removed = 0
+        requested.forEach { guid ->
+            if (profileFullStorage.containsKey(guid)) removed++
+            profileFullStorage.remove(guid)
+            serverAffStorage.remove(guid)
+            serverRawStorage.remove(guid)
+            profileTrafficStorage.remove(guid)
+        }
+        if (selected != null && selected in requested) {
+            mainStorage.remove(KEY_SELECTED_SERVER)
+        }
+        return removed
     }
 
     /**
@@ -274,6 +316,7 @@ object MmkvManager {
             }
             profileFullStorage.remove(guid)
             serverAffStorage.remove(guid)
+            serverRawStorage.remove(guid)
             profileTrafficStorage.remove(guid)
         }
 

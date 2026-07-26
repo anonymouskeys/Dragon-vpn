@@ -220,6 +220,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (subscriptionId.isEmpty()) MmkvManager.decodeAllServerList()
         else MmkvManager.decodeServerList(subscriptionId)
 
+    /** Resolves the complete group selection for destructive bulk actions, without UI limits. */
+    private fun filteredGroupGuids(): List<String> {
+        val kw = keywordFilter.trim()
+        if (kw.isEmpty()) return currentGroupGuids().distinct()
+
+        val searchRegex = try {
+            Regex(kw, setOf(RegexOption.IGNORE_CASE))
+        } catch (e: PatternSyntaxException) {
+            null
+        }
+        return currentGroupGuids().asSequence()
+            .distinct()
+            .filter { guid ->
+                val profile = MmkvManager.decodeServerConfig(guid) ?: return@filter false
+                profile.remarks.matchesPattern(searchRegex, kw)
+                    || profile.description.orEmpty().matchesPattern(searchRegex, kw)
+                    || profile.server.orEmpty().matchesPattern(searchRegex, kw)
+                    || profile.configType.name.matchesPattern(searchRegex, kw)
+            }
+            .toList()
+    }
+
     fun clearVisibleTestResults(): Int {
         val guids = currentGroupGuids().distinct()
         MmkvManager.clearAllTestDelayResults(guids)
@@ -357,8 +379,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (!fingerprints.add(fingerprint)) deleteServer.add(guid)
         }
 
-        deleteServer.forEach(MmkvManager::removeServer)
-        return deleteServer.size
+        return MmkvManager.removeServers(deleteServer)
     }
 
     /**
@@ -366,17 +387,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return The number of removed servers.
      */
     fun removeAllServer(): Int {
-        val count =
-            if (subscriptionId.isEmpty() && keywordFilter.isEmpty()) {
-                MmkvManager.removeAllServer()
-            } else {
-                val serversCopy = serversCache.toList()
-                for (item in serversCopy) {
-                    MmkvManager.removeServer(item.guid)
-                }
-                serversCache.toList().count()
-            }
-        return count
+        if (keywordFilter.isNotBlank()) {
+            return MmkvManager.removeServers(filteredGroupGuids())
+        }
+        if (subscriptionId.isEmpty()) {
+            return MmkvManager.removeAllServer()
+        }
+
+        val guids = currentGroupGuids().distinct()
+        MmkvManager.removeServerViaSubid(subscriptionId)
+        return guids.size
     }
 
     /**
@@ -384,16 +404,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return The number of removed servers.
      */
     fun removeInvalidServer(): Int {
-        var count = 0
-        if (subscriptionId.isEmpty() && keywordFilter.isEmpty()) {
-            count += MmkvManager.removeInvalidServer("")
-        } else {
-            val serversCopy = serversCache.toList()
-            for (item in serversCopy) {
-                count += MmkvManager.removeInvalidServer(item.guid)
-            }
+        val invalidGuids = filteredGroupGuids().filter { guid ->
+            MmkvManager.decodeServerAffiliationInfo(guid)?.testDelayMillis?.let { it < 0L } == true
         }
-        return count
+        return MmkvManager.removeServers(invalidGuids)
     }
 
     /**
