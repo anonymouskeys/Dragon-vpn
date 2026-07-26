@@ -88,30 +88,55 @@ jobs:
           mkdir -p V2rayNG/app/libs
           cp -R libs/. V2rayNG/app/libs/
 
-      - name: Detect Xray library release
-        id: xray
+      - name: Download Xray Android library
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          cd AndroidLibXrayLite
+          set -euo pipefail
 
-          TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+          REPOSITORY="2dust/AndroidLibXrayLite"
+          DESTINATION="V2rayNG/app/libs"
+          ASSET="libv2ray.aar"
 
-          if [ -z "$TAG" ]; then
-            echo "No AndroidLibXrayLite tag found"
+          mkdir -p "$DESTINATION"
+          rm -f "$DESTINATION/$ASSET"
+
+          TAG="$(gh release view \
+            --repo "$REPOSITORY" \
+            --json tagName \
+            --jq '.tagName')"
+
+          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+            echo "::error::Could not determine the latest $REPOSITORY release tag"
             exit 1
           fi
 
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "AndroidLibXrayLite release: $TAG"
+          echo "Downloading $ASSET from $REPOSITORY release $TAG"
 
-      - name: Download libv2ray
-        uses: robinraju/release-downloader@v1.11
-        with:
-          repository: 2dust/AndroidLibXrayLite
-          tag: ${{ steps.xray.outputs.tag }}
-          fileName: libv2ray.aar
-          out-file-path: V2rayNG/app/libs
-          token: ${{ secrets.GITHUB_TOKEN }}
+          if ! gh release view "$TAG" \
+            --repo "$REPOSITORY" \
+            --json assets \
+            --jq '.assets[].name' \
+            | grep -Fxq "$ASSET"; then
+            echo "::error::$ASSET is missing from $REPOSITORY release $TAG"
+            gh release view "$TAG" \
+              --repo "$REPOSITORY" \
+              --json assets \
+              --jq '.assets[].name' || true
+            exit 1
+          fi
+
+          gh release download "$TAG" \
+            --repo "$REPOSITORY" \
+            --pattern "$ASSET" \
+            --dir "$DESTINATION" \
+            --clobber
+
+          test -s "$DESTINATION/$ASSET"
+          unzip -t "$DESTINATION/$ASSET" >/dev/null
+          echo "Downloaded $ASSET from release $TAG:"
+          ls -lh "$DESTINATION/$ASSET"
 
       - name: Validate signing secrets
         shell: bash
@@ -144,9 +169,9 @@ jobs:
         shell: bash
         env:
           KEYSTORE_FILE: ${{ runner.temp }}/dragonvpn-release.jks
-          KEYSTORE_PASSWORD: ${{ secrets.APP_KEYSTORE_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.APP_KEY_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           chmod +x gradlew
