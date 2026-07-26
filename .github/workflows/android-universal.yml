@@ -1,4 +1,4 @@
-name: Android Universal APK
+name: DragonVPN Release APK
 
 on:
   workflow_dispatch:
@@ -182,9 +182,9 @@ jobs:
           fi
 
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            APK_NAME="Monster-VPN-${GITHUB_REF_NAME}-universal.apk"
+            APK_NAME="DragonVPN-${GITHUB_REF_NAME}-universal.apk"
           else
-            APK_NAME="Monster-VPN-universal.apk"
+            APK_NAME="DragonVPN-universal.apk"
           fi
           cp "$APK" "release/$APK_NAME"
 
@@ -207,15 +207,15 @@ jobs:
             --verbose \
             --print-certs \
             "${{ steps.apk.outputs.path }}" \
-            | tee release/Monster-VPN-signing-certificate.txt
+            | tee release/DragonVPN-signing-certificate.txt
 
           grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' \
-            release/Monster-VPN-signing-certificate.txt
+            release/DragonVPN-signing-certificate.txt
 
       - name: Upload universal APK
         uses: actions/upload-artifact@v4
         with:
-          name: Monster-VPN-universal
+          name: DragonVPN-universal
           path: release/
           if-no-files-found: error
           retention-days: 30
