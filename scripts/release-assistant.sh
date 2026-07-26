@@ -77,7 +77,7 @@ ok "Ветка $BRANCH чистая и синхронизирована"
 
 step "Проверка GitHub Actions и секретов"
 gh workflow view "$WORKFLOW" >/dev/null || fail "Workflow '$WORKFLOW' не найден или отключён."
-REQUIRED_SECRETS=(APP_KEYSTORE_BASE64 APP_KEYSTORE_PASSWORD APP_KEYSTORE_ALIAS APP_KEY_PASSWORD)
+REQUIRED_SECRETS=(KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD)
 SECRET_NAMES="$(gh secret list --json name --jq '.[].name')"
 for secret in "${REQUIRED_SECRETS[@]}"; do
   grep -Fxq "$secret" <<<"$SECRET_NAMES" || fail "В GitHub отсутствует секрет: $secret"

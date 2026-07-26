@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-APP_NAME="Monster VPN"
-DEFAULT_ALIAS="monster-vpn"
-DEFAULT_KEYSTORE="$HOME/monster-vpn-signing/monster-release.jks"
+APP_NAME="DRAGON VPN"
+DEFAULT_ALIAS="dragon-vpn"
+DEFAULT_KEYSTORE="$HOME/dragonvpn-signing/dragonvpn-release.jks"
 DEFAULT_VALIDITY="10000"
 
 fail() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
@@ -24,7 +24,7 @@ read_secret() {
 need keytool
 need base64
 
-printf '%s\n' "Monster VPN release-signing assistant"
+printf '%s\n' "DRAGON VPN release-signing assistant"
 printf '%s\n' "This creates the permanent Android update key and can upload GitHub Actions secrets."
 printf '%s\n' "Losing this key means existing installations cannot be updated with future APKs."
 
@@ -68,8 +68,8 @@ keytool -genkeypair -v \
   -dname "CN=$OWNER, O=$ORG, C=$COUNTRY"
 
 CERT_DIR="$(dirname "$KEYSTORE_FILE")"
-CERT_FILE="$CERT_DIR/monster-release-certificate.pem"
-FINGERPRINT_FILE="$CERT_DIR/monster-release-fingerprints.txt"
+CERT_FILE="$CERT_DIR/dragonvpn-release-certificate.pem"
+FINGERPRINT_FILE="$CERT_DIR/dragonvpn-release-fingerprints.txt"
 
 keytool -exportcert -rfc \
   -keystore "$KEYSTORE_FILE" \
@@ -98,10 +98,10 @@ if [[ ! "${UPLOAD:-Y}" =~ ^[Nn]$ ]]; then
   fi
 
   info "Uploading encrypted repository secrets"
-  printf '%s' "$KEYSTORE_BASE64" | gh secret set APP_KEYSTORE_BASE64
-  printf '%s' "$KEYSTORE_PASSWORD" | gh secret set APP_KEYSTORE_PASSWORD
-  printf '%s' "$KEY_ALIAS" | gh secret set APP_KEYSTORE_ALIAS
-  printf '%s' "$KEY_PASSWORD" | gh secret set APP_KEY_PASSWORD
+  printf '%s' "$KEYSTORE_BASE64" | gh secret set KEYSTORE_BASE64
+  printf '%s' "$KEYSTORE_PASSWORD" | gh secret set KEYSTORE_PASSWORD
+  printf '%s' "$KEY_ALIAS" | gh secret set KEY_ALIAS
+  printf '%s' "$KEY_PASSWORD" | gh secret set KEY_PASSWORD
   echo "GitHub Actions secrets configured."
 fi
 

@@ -1,4 +1,4 @@
-name: Monster Base Debug
+name: DragonVPN Main Debug
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: monster-base-debug-${{ github.ref }}
+  group: dragonvpn-main-debug-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
