@@ -549,4 +549,13 @@
     <string name="title_pref_always_show_address">Всегда показывать адрес</string>
     <string name="summary_pref_always_show_address">Всегда отображать адрес и порт сервера в карточке профиля</string>
     <string name="profile_traffic_value">Трафик: %1$s</string>
+
+    <string name="title_clear_test_results">Очистить результаты теста</string>
+    <string name="title_cancel_all_tests">Остановить текущий тест</string>
+    <string name="title_clear_profile_traffic">Очистить статистику трафика</string>
+    <string name="msg_test_results_cleared">Очищено результатов теста: %1$d</string>
+    <string name="msg_profile_traffic_cleared">Очищена статистика трафика для профилей: %1$d</string>
+    <string name="msg_test_cancelled">Тестирование остановлено. Полученные результаты сохранены.</string>
+    <string name="confirm_clear_test_results">Очистить сохранённые результаты теста для текущего списка?</string>
+    <string name="confirm_clear_profile_traffic">Очистить накопленную статистику трафика для текущего списка?</string>
 </resources>

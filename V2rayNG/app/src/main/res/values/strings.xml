@@ -550,4 +550,13 @@
     <string name="title_pref_always_show_address">Always show server address</string>
     <string name="summary_pref_always_show_address">Always display the endpoint address and port on profile cards</string>
     <string name="profile_traffic_value">Traffic: %1$s</string>
+
+    <string name="title_clear_test_results">Clear test results</string>
+    <string name="title_cancel_all_tests">Stop current test</string>
+    <string name="title_clear_profile_traffic">Clear traffic statistics</string>
+    <string name="msg_test_results_cleared">Test results cleared: %1$d</string>
+    <string name="msg_profile_traffic_cleared">Traffic statistics cleared: %1$d profiles</string>
+    <string name="msg_test_cancelled">Testing stopped. Completed results were saved.</string>
+    <string name="confirm_clear_test_results">Clear saved test results for the current list?</string>
+    <string name="confirm_clear_profile_traffic">Clear accumulated traffic statistics for the current list?</string>
 </resources>

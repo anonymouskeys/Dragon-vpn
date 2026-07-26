@@ -404,6 +404,21 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             true
         }
 
+        R.id.cancel_all_tests -> {
+            mainViewModel.cancelBatchTest()
+            true
+        }
+
+        R.id.clear_test_results -> {
+            clearTestResults()
+            true
+        }
+
+        R.id.clear_profile_traffic -> {
+            clearProfileTraffic()
+            true
+        }
+
         R.id.service_restart -> {
             restartV2Ray()
             true
@@ -688,6 +703,30 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             .setNegativeButton(android.R.string.cancel) { _, _ ->
                 //do noting
             }
+            .show()
+    }
+
+    private fun clearTestResults() {
+        AlertDialog.Builder(this)
+            .setMessage(R.string.confirm_clear_test_results)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val count = mainViewModel.clearVisibleTestResults()
+                mainViewModel.reloadServerList()
+                toast(getString(R.string.msg_test_results_cleared, count))
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun clearProfileTraffic() {
+        AlertDialog.Builder(this)
+            .setMessage(R.string.confirm_clear_profile_traffic)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val count = mainViewModel.clearVisibleProfileTraffic()
+                mainViewModel.reloadServerList()
+                toast(getString(R.string.msg_profile_traffic_cleared, count))
+            }
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 

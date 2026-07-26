@@ -72,6 +72,11 @@ class CoreTestService : Service() {
         val snapshot = ArrayList(activeWorkers)
         snapshot.forEach { it.cancel() }
         activeWorkers.clear()
+        if (snapshot.isNotEmpty()) {
+            // Preserve already written per-profile results and tell the UI that this batch was
+            // cancelled. This also covers cancellation through Context.stopService().
+            MessageUtil.sendMsg2UI(this, AppConfig.MSG_MEASURE_CONFIG_FINISH, "-1")
+        }
         releaseDpiTestOwner()
         NotificationHelper.stopForeground(this)
         super.onDestroy()

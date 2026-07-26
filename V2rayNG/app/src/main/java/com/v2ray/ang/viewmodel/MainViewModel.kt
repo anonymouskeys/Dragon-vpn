@@ -28,6 +28,7 @@ import com.v2ray.ang.extension.toastSuccess
 import com.v2ray.ang.handler.AngConfigManager
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsManager
+import com.v2ray.ang.util.JsonUtil
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.util.Utils
@@ -199,6 +200,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         startBatchTest(TestServiceMessage.TEST_MODE_HANDSHAKE, serversCache.map { it.guid }.distinct())
     }
 
+    fun cancelBatchTest() {
+        MessageUtil.sendMsg2TestService(
+            getApplication(),
+            TestServiceMessage(key = AppConfig.MSG_MEASURE_CONFIG_CANCEL)
+        )
+        updateTestResultAction.value = getApplication<AngApplication>().getString(R.string.msg_test_cancelled)
+    }
+
+    private fun currentGroupGuids(): List<String> =
+        if (subscriptionId.isEmpty()) MmkvManager.decodeAllServerList()
+        else MmkvManager.decodeServerList(subscriptionId)
+
+    fun clearVisibleTestResults(): Int {
+        val guids = currentGroupGuids().distinct()
+        MmkvManager.clearAllTestDelayResults(guids)
+        updateListAction.postValue(-1)
+        return guids.size
+    }
+
+    fun clearVisibleProfileTraffic(): Int {
+        val guids = currentGroupGuids().distinct()
+        guids.forEach(MmkvManager::clearProfileTraffic)
+        updateListAction.postValue(-1)
+        return guids.size
+    }
+
     private fun startBatchTest(testMode: String, guids: List<String>) {
         if (guids.isEmpty()) return
         updateListAction.value = -1
@@ -287,35 +314,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return The number of removed servers.
      */
     fun removeDuplicateServer(): Int {
-        val serversCacheCopy = serversCache.toList().toMutableList()
-        val deleteServer = mutableListOf<String>()
+        val guids = currentGroupGuids()
+        val fingerprints = HashSet<String>(guids.size.coerceAtMost(65_536))
+        val deleteServer = ArrayList<String>()
 
-        serversCacheCopy.forEachIndexed { index, sc ->
-            val profile = sc.profile
-            // Skip if this profile has a complex config type
-            if (profile.configType.isComplexType()) {
-                return@forEachIndexed
-            }
+        guids.forEach { guid ->
+            val profile = MmkvManager.decodeServerConfig(guid) ?: return@forEach
+            if (profile.configType.isComplexType()) return@forEach
 
-            serversCacheCopy.forEachIndexed { index2, sc2 ->
-                if (index2 > index) {
-                    val profile2 = sc2.profile
-                    // Skip if the second profile has a complex config type
-                    if (profile2.configType.isComplexType()) {
-                        return@forEachIndexed
-                    }
-
-                    if (profile == profile2 && !deleteServer.contains(sc2.guid)) {
-                        deleteServer.add(sc2.guid)
-                    }
-                }
-            }
-        }
-        for (it in deleteServer) {
-            MmkvManager.removeServer(it)
+            // Names, descriptions, timestamps and group affiliation do not change the actual
+            // connection. Normalising them makes duplicate removal useful for crawler feeds while
+            // keeping every protocol/security/transport field in the fingerprint.
+            val normalized = profile.copy(
+                subscriptionId = "",
+                addedTime = 0L,
+                remarks = "",
+                description = null
+            )
+            val fingerprint = JsonUtil.toJson(normalized)
+            if (!fingerprints.add(fingerprint)) deleteServer.add(guid)
         }
 
-        return deleteServer.count()
+        deleteServer.forEach(MmkvManager::removeServer)
+        return deleteServer.size
     }
 
     /**

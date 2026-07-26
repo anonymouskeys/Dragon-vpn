@@ -51,6 +51,8 @@
             <item android:id="@+id/smart_test_all" android:title="@string/title_smart_test_all_server" />
             <item android:id="@+id/tcp_ping_all" android:title="@string/title_tcp_test_all_server" />
             <item android:id="@+id/real_ping_all" android:title="@string/title_handshake_test_all_server" />
+            <item android:id="@+id/clear_test_results" android:title="@string/title_clear_test_results" />
+            <item android:id="@+id/cancel_all_tests" android:title="@string/title_cancel_all_tests" />
             <item android:id="@+id/sort_by_test_results" android:title="@string/title_sort_by_test_results" />
             <item android:id="@+id/locate_selected_config" android:title="@string/title_locate_selected_config" />
         </menu>
@@ -65,6 +67,7 @@
 
     <item android:title="@string/dragon_menu_cleanup" app:showAsAction="never">
         <menu>
+            <item android:id="@+id/clear_profile_traffic" android:title="@string/title_clear_profile_traffic" />
             <item android:id="@+id/del_duplicate_config" android:title="@string/title_del_duplicate_config" />
             <item android:id="@+id/del_invalid_config" android:title="@string/title_del_invalid_config" />
             <item android:id="@+id/del_all_config" android:title="@string/title_del_all_config" />
