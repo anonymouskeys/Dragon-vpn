@@ -387,19 +387,19 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         }
 
         R.id.smart_test_all -> {
-            toast(getString(R.string.connection_test_testing_count, mainViewModel.serversCache.count()))
+            toast(getString(R.string.connection_test_testing_count, mainViewModel.batchTestTargetCount()))
             mainViewModel.testAllSmart()
             true
         }
 
         R.id.tcp_ping_all -> {
-            toast(getString(R.string.connection_test_testing_count, mainViewModel.serversCache.count()))
+            toast(getString(R.string.connection_test_testing_count, mainViewModel.batchTestTargetCount()))
             mainViewModel.testAllTcpPing()
             true
         }
 
         R.id.real_ping_all -> {
-            toast(getString(R.string.connection_test_testing_count, mainViewModel.serversCache.count()))
+            toast(getString(R.string.connection_test_testing_count, mainViewModel.batchTestTargetCount()))
             mainViewModel.testAllHandshake()
             true
         }

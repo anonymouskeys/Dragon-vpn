@@ -16,6 +16,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.v2ray.ang.AngApplication
 import com.v2ray.ang.AppConfig
+import com.v2ray.ang.AppConfig.DEFAULT_SUBSCRIPTION_ID
 import com.v2ray.ang.dto.GroupMapItem
 import com.v2ray.ang.dto.SubscriptionUpdateResult
 import com.v2ray.ang.dto.TestServiceMessage
@@ -169,35 +170,42 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * @return The number of exported servers.
      */
     fun exportAllServer(): Int {
-        val serverListCopy =
-            if (subscriptionId.isEmpty() && keywordFilter.isEmpty()) {
-                serverList
-            } else {
-                serversCache.map { it.guid }.toList()
-            }
+        // UI cache is deliberately capped for smooth scrolling. Bulk operations must never use
+        // that window as their source of truth, otherwise large subscriptions are silently cut.
+        val guids = if (keywordFilter.isBlank()) {
+            serverList.toList()
+        } else {
+            serversCache.map { it.guid }
+        }
 
-        val ret = AngConfigManager.shareNonCustomConfigsToClipboard(
+        return AngConfigManager.shareNonCustomConfigsToClipboard(
             getApplication<AngApplication>(),
-            serverListCopy
+            guids.distinct()
         )
-        return ret
     }
 
     /**
      * Tests the real ping for all servers.
      */
     fun testAllSmart() {
-        startBatchTest(TestServiceMessage.TEST_MODE_SMART, serversCache.map { it.guid }.distinct())
+        startBatchTest(TestServiceMessage.TEST_MODE_SMART)
     }
 
     fun testAllTcpPing() {
-        startBatchTest(TestServiceMessage.TEST_MODE_TCP, serversCache.map { it.guid }.distinct())
+        startBatchTest(TestServiceMessage.TEST_MODE_TCP)
     }
 
     fun testAllHandshake() {
         // Handshake is an independent, definitive protocol test. It must never depend on a
         // previously cached TCP result; Smart Test owns the optional TCP pre-filter instead.
-        startBatchTest(TestServiceMessage.TEST_MODE_HANDSHAKE, serversCache.map { it.guid }.distinct())
+        startBatchTest(TestServiceMessage.TEST_MODE_HANDSHAKE)
+    }
+
+    /** Number of profiles that the next bulk test will actually receive. */
+    fun batchTestTargetCount(): Int = if (keywordFilter.isBlank()) {
+        serverList.distinct().size
+    } else {
+        serversCache.asSequence().map { it.guid }.distinct().count()
     }
 
     fun cancelBatchTest() {
@@ -226,18 +234,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return guids.size
     }
 
-    private fun startBatchTest(testMode: String, guids: List<String>) {
-        if (guids.isEmpty()) return
+    private fun startBatchTest(testMode: String) {
+        val filteredGuids = if (keywordFilter.isBlank()) {
+            emptyList()
+        } else {
+            serversCache.map { it.guid }.distinct()
+        }
+        val total = if (filteredGuids.isEmpty() && keywordFilter.isBlank()) {
+            serverList.distinct().size
+        } else {
+            filteredGuids.size
+        }
+        if (total == 0) return
+
         updateListAction.value = -1
         updateTestResultAction.value =
-            getApplication<AngApplication>().getString(R.string.connection_runing_task_left, "0 / ${guids.size}")
+            getApplication<AngApplication>().getString(R.string.connection_runing_task_left, "0 / $total")
 
+        // Do not serialize tens of thousands of GUIDs through an Intent. For an unfiltered group
+        // the foreground service resolves the list directly from MMKV, avoiding Binder limits and
+        // a large temporary copy. Only an explicit search sends its bounded result list.
         MessageUtil.sendMsg2TestService(
             getApplication(),
             TestServiceMessage(
                 key = AppConfig.MSG_MEASURE_CONFIG_START,
-                subscriptionId = subscriptionId,
-                serverGuids = guids,
+                subscriptionId = subscriptionId.ifEmpty { DEFAULT_SUBSCRIPTION_ID },
+                serverGuids = filteredGuids,
                 testMode = testMode
             )
         )
