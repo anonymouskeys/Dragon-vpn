@@ -47,7 +47,7 @@ class SubSettingActivity : BaseActivity() {
             viewModel,
             ActivityAdapterListener(),
             ::updateSingleSubscription,
-            ::clearGroupProfiles
+            ::shareGroupProfiles
         )
 
         binding.recyclerView.setHasFixedSize(true)
@@ -155,6 +155,25 @@ class SubSettingActivity : BaseActivity() {
         }
         Utils.setClipboard(this, content)
         toast(R.string.dragon_group_exported)
+    }
+
+    private fun shareGroupProfiles(subId: String) {
+        val content = MmkvManager.decodeServerList(subId)
+            .asSequence()
+            .map(AngConfigManager::shareConfig)
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
+
+        if (content.isBlank()) {
+            toast(R.string.dragon_group_no_profiles_to_share)
+            return
+        }
+
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, content)
+        }
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.dragon_group_share_profiles)))
     }
 
     private fun clearGroupProfiles(subId: String, position: Int) {

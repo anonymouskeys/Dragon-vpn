@@ -7,7 +7,6 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.v2ray.ang.contracts.BaseAdapterListener
 import com.v2ray.ang.helper.ItemTouchHelperAdapter
@@ -19,7 +18,7 @@ class SubSettingRecyclerAdapter(
     private val viewModel: SubscriptionsViewModel,
     private val adapterListener: BaseAdapterListener?,
     private val onUpdate: (String, Int) -> Unit,
-    private val onClearProfiles: (String, Int) -> Unit
+    private val onShareGroup: (String) -> Unit
 ) : RecyclerView.Adapter<SubSettingRecyclerAdapter.MainViewHolder>(), ItemTouchHelperAdapter {
 
     override fun getItemCount() = viewModel.getAll().size
@@ -47,6 +46,10 @@ class SubSettingRecyclerAdapter(
             adapterListener?.onEdit(subId, position)
         }
 
+        holder.itemSubSettingBinding.layoutShare.setOnClickListener {
+            onShareGroup(subId)
+        }
+
         holder.itemSubSettingBinding.layoutUpdate.setOnClickListener {
             onUpdate(subId, position)
         }
@@ -55,50 +58,39 @@ class SubSettingRecyclerAdapter(
             adapterListener?.onEdit(subId, position)
         }
 
-        holder.itemSubSettingBinding.layoutMore.setOnClickListener { anchor ->
-            PopupMenu(anchor.context, anchor).apply {
-                menuInflater.inflate(R.menu.action_sub_group_item, menu)
-                setOnMenuItemClickListener { item ->
-                    when (item.itemId) {
-                        R.id.group_share -> {
-                            adapterListener?.onShare(subItem.url)
-                            true
-                        }
-                        R.id.group_export_clipboard -> {
-                            Utils.setClipboard(anchor.context, subItem.url)
-                            true
-                        }
-                        R.id.group_clear_profiles -> {
-                            onClearProfiles(subId, position)
-                            true
-                        }
-                        R.id.group_delete -> {
-                            adapterListener?.onRemove(subId, position)
-                            true
-                        }
-                        else -> false
-                    }
-                }
-                show()
-            }
-        }
-
         holder.itemSubSettingBinding.chkEnable.setOnCheckedChangeListener { it, isChecked ->
             if (!it.isPressed) return@setOnCheckedChangeListener
             subItem.enabled = isChecked
             viewModel.update(subId, subItem)
         }
 
-        if (TextUtils.isEmpty(subItem.url)) {
+        val isLocalGroup = TextUtils.isEmpty(subItem.url)
+        if (isLocalGroup) {
+            // Local groups (including Default): share contained profiles and edit the group.
+            // They have no subscription URL, so update and subscription-only controls are hidden.
             holder.itemSubSettingBinding.layoutUrl.visibility = View.GONE
-            holder.itemSubSettingBinding.layoutMore.visibility = View.VISIBLE
             holder.itemSubSettingBinding.chkEnable.visibility = View.INVISIBLE
-            holder.itemSubSettingBinding.layoutLastUpdated.visibility = View.INVISIBLE
+            holder.itemSubSettingBinding.layoutLastUpdated.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.tvLastUpdated.visibility = View.GONE
+            holder.itemSubSettingBinding.layoutShare.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.layoutUpdate.visibility = View.GONE
+            holder.itemSubSettingBinding.layoutEdit.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.layoutMore.visibility = View.GONE
+            holder.itemSubSettingBinding.infoContainer.setOnClickListener {
+                adapterListener?.onEdit(subId, position)
+            }
         } else {
+            // Subscription-backed groups expose only the update action on the card.
             holder.itemSubSettingBinding.layoutUrl.visibility = View.VISIBLE
-            holder.itemSubSettingBinding.layoutMore.visibility = View.VISIBLE
             holder.itemSubSettingBinding.chkEnable.visibility = View.VISIBLE
             holder.itemSubSettingBinding.layoutLastUpdated.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.tvLastUpdated.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.layoutShare.visibility = View.GONE
+            holder.itemSubSettingBinding.layoutUpdate.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.layoutEdit.visibility = View.GONE
+            holder.itemSubSettingBinding.layoutMore.visibility = View.GONE
+            holder.itemSubSettingBinding.infoContainer.setOnClickListener(null)
+            holder.itemSubSettingBinding.infoContainer.isClickable = false
         }
     }
 

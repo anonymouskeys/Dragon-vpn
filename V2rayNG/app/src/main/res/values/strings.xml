@@ -559,4 +559,7 @@
     <string name="msg_test_cancelled">Testing stopped. Completed results were saved.</string>
     <string name="confirm_clear_test_results">Clear saved test results for the current list?</string>
     <string name="confirm_clear_profile_traffic">Clear accumulated traffic statistics for the current list?</string>
+
+    <string name="dragon_group_share_profiles">Share profiles</string>
+    <string name="dragon_group_no_profiles_to_share">There are no shareable profiles in this group</string>
 </resources>

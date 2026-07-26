@@ -104,6 +104,15 @@
                 android:orientation="horizontal">
 
                 <ImageButton
+                    android:id="@+id/layout_share"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/dragon_group_share_profiles"
+                    android:padding="12dp"
+                    app:srcCompat="@drawable/ic_share_24dp" />
+
+                <ImageButton
                     android:id="@+id/layout_update"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
