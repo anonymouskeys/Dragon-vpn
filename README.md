@@ -1,89 +1,95 @@
 <p align="center">
-  <img src="docs/images/monster-vpn-hero.jpg" alt="Monster VPN purple dragon banner" width="100%">
+  <img src="docs/images/dragon-vpn-hero.jpg" alt="DRAGON VPN — Xray-powered Android client" width="100%">
 </p>
 
-<h1 align="center">🐉 Monster VPN</h1>
+<h1 align="center">🐉 DRAGON VPN</h1>
 
 <p align="center">
-  <strong>Break the firewall. Own your connection.</strong><br>
-  A modern Android client powered by Xray-core and built for speed, privacy, and resilient connectivity.
+  <strong>Break through restrictive networks. Take back your connection.</strong><br>
+  A powerful, privacy-focused Android client built on Xray-core for resilient connectivity, modern proxy protocols, and advanced DPI resistance.
 </p>
 
 <p align="center">
-  <a href="https://github.com/anonymouskeys/Monster-VPN/releases/latest"><img src="https://img.shields.io/github/v/release/anonymouskeys/Monster-VPN?style=for-the-badge&logo=github&label=Latest%20Release" alt="Latest release"></a>
-  <a href="https://github.com/anonymouskeys/Monster-VPN/releases"><img src="https://img.shields.io/github/downloads/anonymouskeys/Monster-VPN/total?style=for-the-badge&logo=android&label=Downloads" alt="Downloads"></a>
-  <a href="https://github.com/anonymouskeys/Monster-VPN/blob/main/LICENSE"><img src="https://img.shields.io/github/license/anonymouskeys/Monster-VPN?style=for-the-badge" alt="License"></a>
-  <a href="https://github.com/anonymouskeys/Monster-VPN/stargazers"><img src="https://img.shields.io/github/stars/anonymouskeys/Monster-VPN?style=for-the-badge&logo=github" alt="GitHub stars"></a>
+  <a href="https://github.com/anonymouskeys/Dragon-vpn/releases/latest"><img src="https://img.shields.io/github/v/release/anonymouskeys/Dragon-vpn?style=for-the-badge&logo=github&label=Latest%20Release" alt="Latest release"></a>
+  <a href="https://github.com/anonymouskeys/Dragon-vpn/releases"><img src="https://img.shields.io/github/downloads/anonymouskeys/Dragon-vpn/total?style=for-the-badge&logo=android&label=Downloads" alt="Downloads"></a>
+  <a href="https://github.com/anonymouskeys/Dragon-vpn/blob/monster-base/LICENSE"><img src="https://img.shields.io/github/license/anonymouskeys/Dragon-vpn?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/anonymouskeys/Dragon-vpn/stargazers"><img src="https://img.shields.io/github/stars/anonymouskeys/Dragon-vpn?style=for-the-badge&logo=github" alt="GitHub stars"></a>
   <a href="https://t.me/anonymouskeys"><img src="https://img.shields.io/badge/Telegram-Anonymous%20Keys-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/anonymouskeys/Monster-VPN/releases/latest"><strong>Download the latest signed APK</strong></a>
+  <a href="https://github.com/anonymouskeys/Dragon-vpn/releases/latest"><strong>Download the latest signed APK</strong></a>
   ·
   <a href="https://t.me/anonymouskeys"><strong>Join the community</strong></a>
   ·
-  <a href="#-support-development"><strong>Support development</strong></a>
+  <a href="#-support-the-project"><strong>Support the project</strong></a>
 </p>
 
 ---
 
-## What is Monster VPN?
+## What is DRAGON VPN?
 
-Monster VPN is an open-source Android client built around **Xray-core**. It brings modern proxy protocols, flexible routing, connection testing, and DPI-resistance tools together in one polished application.
+**DRAGON VPN** is an independent, open-source Android networking client built around **Xray-core**. It is presented and maintained as an independent DRAGON VPN product rather than a simple NekoBox rebrand, with its own identity, release workflow, interface decisions, profile-management logic, large-subscription improvements, and connectivity tooling.
 
-The project is designed for people who need a fast, reliable, and transparent networking client without advertisements, telemetry, or user tracking.
+The application is designed for users who need a fast and transparent client for difficult or heavily filtered network environments. It combines modern Xray protocols, flexible routing, rapid profile testing, packet fragmentation, and an aggressive DPI-resistance mode powered by the integrated ByeDPI toolchain.
 
-> Monster VPN is a client application. Connection quality and censorship resistance depend on your server, configuration, protocol, and network environment.
+DRAGON VPN contains no advertising SDKs and is designed without telemetry or user tracking.
 
-## Highlights
+> DRAGON VPN is a client application, not a VPN service. Successful connectivity depends on the server, configuration, protocol, mobile provider, local network, and filtering system in use. No client can guarantee access on every network.
 
-| Core & protocols | Connectivity & privacy | Android experience |
+## Key features
+
+| Xray platform | Censorship resistance | Android experience |
 |---|---|---|
-| Xray-core | REALITY and XTLS | Material 3 dark interface |
-| VLESS and VMess | uTLS fingerprinting | Fast profile management |
-| Trojan and Shadowsocks | Packet fragmentation | Built-in latency testing |
-| TUIC and Hysteria2 | ByeDPI integration | Signed release builds |
-| SOCKS and HTTP | Flexible routing rules | No ads or telemetry |
+| Xray-core engine | Aggressive ByeDPI mode | Clean dark interface |
+| VLESS and VMess | Packet fragmentation | Fast profile management |
+| Trojan and Shadowsocks | REALITY and XTLS | Smart connectivity tests |
+| Hysteria2 and TUIC | uTLS fingerprinting | Large subscription support |
+| SOCKS and HTTP | Flexible routing rules | Signed GitHub releases |
 
-## Why Monster VPN?
+### Built for hostile networks
 
-- **Built for modern networks** — support for current Xray transports and censorship-resistance techniques.
-- **Fast profile checks** — built-in TCP and handshake testing helps identify working configurations quickly.
-- **Privacy by design** — no advertising SDKs, telemetry, or user tracking.
-- **Independent releases** — reproducible project automation and cryptographically signed APK builds.
-- **Open development** — source code, issues, pull requests, and release history are public.
+- **Advanced DPI resistance** — integrated ByeDPI support and packet-fragmentation controls help counter several common traffic-classification and filtering techniques.
+- **Modern Xray transports** — use current protocols and security layers such as VLESS, REALITY, XTLS, Trojan, Hysteria2, and TUIC.
+- **Rapid profile validation** — TCP, handshake, and smart testing tools make it easier to identify working configurations.
+- **Large subscriptions** — profile operations are designed to work with subscription groups containing thousands of configurations, rather than only the visible UI window.
+- **Flexible routing** — control how traffic is handled across applications, domains, addresses, and outbound profiles.
+- **Privacy-first design** — no advertisements, telemetry, analytics SDKs, or account requirement.
+- **Independent signed releases** — release APKs are built through the project's GitHub Actions workflow and signed with the established project signing key.
 
 ## Download
 
-Get the newest signed Android package from the Releases page:
+Get the latest signed Android package from the official Releases page:
 
 <p align="center">
-  <a href="https://github.com/anonymouskeys/Monster-VPN/releases/latest">
-    <img src="https://img.shields.io/badge/Download-Latest%20APK-8F4CFF?style=for-the-badge&logo=android&logoColor=white" alt="Download latest APK">
+  <a href="https://github.com/anonymouskeys/Dragon-vpn/releases/latest">
+    <img src="https://img.shields.io/badge/Download-Latest%20Signed%20APK-00B8D9?style=for-the-badge&logo=android&logoColor=white" alt="Download latest signed APK">
   </a>
 </p>
 
-For your safety, download builds only from this repository's official Releases page.
+For your safety, download DRAGON VPN only from this repository's official Releases page or from links published in the official Telegram channel.
 
 ## Supported technologies
 
-`Xray-core` · `VLESS` · `VMess` · `Trojan` · `Shadowsocks` · `TUIC` · `Hysteria2` · `REALITY` · `XTLS` · `uTLS` · `SOCKS` · `HTTP` · `Fragmentation` · `ByeDPI`
+`Xray-core` · `VLESS` · `VMess` · `Trojan` · `Shadowsocks` · `Hysteria2` · `TUIC` · `REALITY` · `XTLS` · `uTLS` · `SOCKS` · `HTTP` · `Packet fragmentation` · `ByeDPI`
+
+Protocol availability and behavior may vary by build, server configuration, and upstream core support.
 
 ## Build from source
 
-Clone the repository and build the Android application with the included Gradle wrapper:
+Clone the repository with its submodules and build the Android application using the included Gradle wrapper:
 
 ```bash
-git clone --recursive https://github.com/anonymouskeys/Monster-VPN.git
-cd Monster-VPN/V2rayNG
+git clone --recursive https://github.com/anonymouskeys/Dragon-vpn.git
+cd Dragon-vpn/V2rayNG
 ./gradlew assembleDebug
 ```
 
-Release builds require a signing configuration. See [`docs/RELEASE_SIGNING.md`](docs/RELEASE_SIGNING.md) for the project's signing and CI setup.
+Release builds require the project's signing configuration. See [`docs/RELEASE_SIGNING.md`](docs/RELEASE_SIGNING.md) and [`docs/RELEASE_ASSISTANT.md`](docs/RELEASE_ASSISTANT.md) for the release and CI workflow.
 
 ## Community
 
-News, beta builds, release announcements, and project discussion are published in the official Telegram channel:
+Release announcements, development news, configuration discussions, and project updates are published in the official Anonymous Keys Telegram channel:
 
 <p align="center">
   <a href="https://t.me/anonymouskeys">
@@ -91,9 +97,9 @@ News, beta builds, release announcements, and project discussion are published i
   </a>
 </p>
 
-## ❤️ Support development
+## ❤️ Support the project
 
-Monster VPN is developed and maintained independently. Donations help fund testing, infrastructure, bug fixes, interface improvements, and support for new networking technologies.
+DRAGON VPN is developed and maintained independently. Donations help cover testing devices, infrastructure, release automation, bug fixes, interface improvements, and continued work on censorship-resistance features.
 
 <table>
   <tr>
@@ -110,36 +116,35 @@ Monster VPN is developed and maintained independently. Donations help fund testi
   </tr>
 </table>
 
-Please verify the network and full wallet address before sending funds. Only send TON-network assets to the TON address and USDT on TRON/TRC20 to the TRC20 address.
+Please verify the selected network and the complete wallet address before sending funds. Send only TON-network assets to the TON address, and only USDT on the TRON/TRC20 network to the TRC20 address.
 
 ## Contributing
 
-Bug reports, feature proposals, documentation improvements, and pull requests are welcome. Before opening a pull request, keep changes focused and describe how they were tested.
+Bug reports, focused pull requests, documentation improvements, and reproducible test results are welcome. Please describe what was changed, why it was needed, and how it was tested.
 
-## License
+## License and attribution
 
-Monster VPN is distributed under the **GPL-3.0 license**. See [`LICENSE`](LICENSE) for the full terms.
+DRAGON VPN is distributed under the **GNU General Public License v3.0**. See [`LICENSE`](LICENSE) for the complete terms.
 
-## Credits
-
-Monster VPN stands on the work of outstanding open-source communities and projects, including:
+This project builds on and includes work from open-source communities and projects such as:
 
 - Xray-core
 - v2rayNG
-- sing-box ecosystem
-- Android Open Source Project and the wider Android community
+- ByeDPI
+- hev-socks5-tunnel
+- Android Open Source Project and the wider Android ecosystem
 
-Please respect the licenses and attribution requirements of all upstream components.
+DRAGON VPN is an independent project, but independence does not remove upstream license and attribution obligations. Please respect the licenses of every included component.
 
 ---
 
-<h2 align="center">⭐ Like Monster VPN?</h2>
+<h2 align="center">⭐ Support DRAGON VPN</h2>
 
 <p align="center">
-  Give the repository a star and share it with people who need a powerful Android networking client.
+  Star the repository, share the project, report reproducible bugs, and help other users understand safe configuration practices.
 </p>
 
 <p align="center">
-  <strong>Freedom. Privacy. Performance.</strong><br>
+  <strong>Freedom. Privacy. Resilience.</strong><br>
   Built with passion by <a href="https://t.me/anonymouskeys">Anonymous Keys</a>.
 </p>
