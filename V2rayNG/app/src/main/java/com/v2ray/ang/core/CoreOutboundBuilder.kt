@@ -270,9 +270,8 @@ object CoreOutboundBuilder {
         streamSettings: OutboundBean.StreamSettingsBean,
         profileItem: ProfileItem,
     ) {
-        val globalAllowInsecure = MmkvManager.decodeSettingsBool(AppConfig.PREF_ALLOW_INSECURE, false)
-        val allowInsecure = (profileItem.insecure == true || globalAllowInsecure) &&
-                profileItem.pinnedCA256.isNullOrEmpty()
+        val insecureRequested = profileItem.insecure == true ||
+                MmkvManager.decodeSettingsBool(AppConfig.PREF_ALLOW_INSECURE, false)
         val explicitSni = profileItem.sni?.trim().orEmpty()
         val serverName = when {
             explicitSni.isNotEmpty() && Utils.isDomainName(explicitSni) -> explicitSni
@@ -282,7 +281,6 @@ object CoreOutboundBuilder {
 
         streamSettings.security = AppConfig.TLS
         streamSettings.tlsSettings = OutboundBean.StreamSettingsBean.TlsSettingsBean(
-            allowInsecure = allowInsecure,
             serverName = serverName,
             alpn = profileItem.alpn?.split(",")?.map { it.trim() }
                 ?.filter { it.isNotEmpty() }?.takeIf { it.isNotEmpty() },
@@ -295,7 +293,8 @@ object CoreOutboundBuilder {
         LogUtil.i(
             AppConfig.TAG,
             "HTTPS proxy outbound: ${profileItem.getServerAddressAndPort()}, " +
-                    "sni=${serverName ?: "<none>"}, allowInsecure=$allowInsecure, " +
+                    "sni=${serverName ?: "<none>"}, " +
+                    "legacyInsecureRequested=$insecureRequested, " +
                     "auth=${if (profileItem.username.isNotNullEmpty()) "basic" else "none"}"
         )
     }
@@ -605,9 +604,8 @@ object CoreOutboundBuilder {
      */
     fun populateTlsSettings(streamSettings: OutboundBean.StreamSettingsBean, profileItem: ProfileItem, sniExt: String?) {
         val streamSecurity = profileItem.security.orEmpty()
-        val allowInsecure = (profileItem.insecure == true ||
-                MmkvManager.decodeSettingsBool(AppConfig.PREF_ALLOW_INSECURE, false)) &&
-                profileItem.pinnedCA256.isNullOrEmpty()
+        val insecureRequested = profileItem.insecure == true ||
+                MmkvManager.decodeSettingsBool(AppConfig.PREF_ALLOW_INSECURE, false)
         val sni = if (profileItem.sni.isNullOrEmpty()) {
             when {
                 sniExt.isNotNullEmpty() && Utils.isDomainName(sniExt) -> sniExt
@@ -621,7 +619,6 @@ object CoreOutboundBuilder {
         streamSettings.security = streamSecurity.nullIfBlank()
         if (streamSettings.security == null) return
         val tlsSetting = OutboundBean.StreamSettingsBean.TlsSettingsBean(
-            allowInsecure = allowInsecure,
             serverName = sni.nullIfBlank(),
             fingerprint = profileItem.fingerPrint.nullIfBlank(),
             alpn = profileItem.alpn?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.takeIf { !it.isNullOrEmpty() },
@@ -636,6 +633,13 @@ object CoreOutboundBuilder {
         if (streamSettings.security == AppConfig.TLS) {
             streamSettings.tlsSettings = tlsSetting
             streamSettings.realitySettings = null
+            if (insecureRequested && profileItem.pinnedCA256.isNullOrEmpty()) {
+                LogUtil.w(
+                    AppConfig.TAG,
+                    "TLS profile '${profileItem.remarks}' requested legacy insecure mode; " +
+                            "Xray 26.7+ removed allowInsecure, using normal certificate verification"
+                )
+            }
         } else if (streamSettings.security == AppConfig.REALITY) {
             streamSettings.tlsSettings = null
             streamSettings.realitySettings = tlsSetting

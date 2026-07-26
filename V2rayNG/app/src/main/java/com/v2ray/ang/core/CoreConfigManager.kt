@@ -396,7 +396,10 @@ object CoreConfigManager {
         // Build the local SOCKS chain only after ciadpi has actually opened its port.
         // Checking the preference alone leaves Xray pointing at a dead 127.0.0.1 listener.
         if (!ByeDpiManager.isRunning()) return
-        val supportedProtocols = setOf("vmess", "vless", "trojan", "shadowsocks", "socks", "http")
+        // Do not chain HTTP/HTTPS forward proxies through ByeDPI. ciadpi's TLS/HTTP
+        // splitting is intended for origin traffic and can corrupt the proxy TLS
+        // handshake or HTTP CONNECT exchange itself.
+        val supportedProtocols = setOf("vmess", "vless", "trojan", "shadowsocks", "socks")
         val unsupportedNetworks = setOf("kcp", "quic", "hysteria")
         val candidates = v2rayConfig.outbounds.filter { outbound ->
             outbound.tag != AppConfig.TAG_DIRECT && outbound.tag != AppConfig.TAG_BLOCKED &&
@@ -607,18 +610,9 @@ object CoreConfigManager {
             return
         }
 
-        if (forceForTcpOnlyProxy) {
-            // HTTP CONNECT cannot carry raw UDP. Route DNS-module traffic directly so
-            // hostname resolution remains functional instead of sending UDP/53 to the
-            // HTTP outbound and ending in closed-pipe/time-out errors.
-            v2rayConfig.routing.rules.add(
-                0,
-                V2rayConfig.RoutingBean.RulesBean(
-                    inboundTag = arrayListOf(AppConfig.TAG_DNS),
-                    outboundTag = AppConfig.TAG_DIRECT,
-                )
-            )
-        }
+        // Raw UDP/53 is intercepted below and handed to Xray's DNS module. The
+        // module's DoH/DoT TCP connections must continue through TAG_PROXY; forcing
+        // them direct can loop or be blocked while VPN mode owns the default route.
 
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_FAKE_DNS_ENABLED) == true) {
             val geositeCn = arrayListOf(AppConfig.GEOSITE_CN)

@@ -188,7 +188,10 @@ object AngConfigManager {
         }
 
         var countSub = parseBatchSubscription(server)
-        if (countSub <= 0) {
+        // A list of already-recognizable proxy URIs is not a Base64 subscription.
+        // Avoid noisy IllegalArgumentException stack traces for hysteria2://, http://,
+        // and other plain-text batch imports.
+        if (countSub <= 0 && server?.contains("://") != true) {
             countSub = parseBatchSubscription(Utils.decode(server))
         }
         if (countSub > 0) {
