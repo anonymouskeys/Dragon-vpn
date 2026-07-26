@@ -52,6 +52,8 @@ object AppConfig {
     const val PREF_START_SCAN_IMMEDIATE = "pref_start_scan_immediate"
     const val PREF_DOUBLE_COLUMN_DISPLAY = "pref_double_column_display"
     const val PREF_GROUP_ALL_DISPLAY = "pref_group_all_display"
+    const val PREF_PROFILE_TRAFFIC_STATS = "pref_profile_traffic_stats"
+    const val PREF_ALWAYS_SHOW_ADDRESS = "pref_always_show_address"
     const val PREF_LANGUAGE = "pref_language"
     const val PREF_UI_MODE_NIGHT = "pref_ui_mode_night"
     const val PREF_IPV6_ENABLED = "pref_ipv6_enabled"

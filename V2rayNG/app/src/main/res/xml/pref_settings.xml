@@ -9,6 +9,7 @@
             android:title="@string/title_pref_speed_enabled" />
 
         <CheckBoxPreference
+            android:defaultValue="true"
             android:key="pref_confirm_remove"
             android:summary="@string/summary_pref_confirm_remove"
             android:title="@string/title_pref_confirm_remove" />
@@ -27,6 +28,18 @@
             android:key="pref_group_all_display"
             android:summary="@string/summary_pref_group_all_display"
             android:title="@string/title_pref_group_all_display" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="pref_profile_traffic_stats"
+            android:summary="@string/summary_pref_profile_traffic_stats"
+            android:title="@string/title_pref_profile_traffic_stats" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="pref_always_show_address"
+            android:summary="@string/summary_pref_always_show_address"
+            android:title="@string/title_pref_always_show_address" />
 
         <ListPreference
             android:defaultValue="auto"

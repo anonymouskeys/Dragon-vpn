@@ -16,6 +16,7 @@ import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.ServersCache
 import com.v2ray.ang.extension.isComplexType
 import com.v2ray.ang.extension.nullIfBlank
+import com.v2ray.ang.extension.toTrafficString
 import com.v2ray.ang.handler.AngConfigManager
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.helper.ItemTouchHelperAdapter
@@ -33,6 +34,8 @@ class MainRecyclerAdapter(
     }
 
     private val doubleColumnDisplay = MmkvManager.decodeSettingsBool(AppConfig.PREF_DOUBLE_COLUMN_DISPLAY, false)
+    private val showProfileTraffic = MmkvManager.decodeSettingsBool(AppConfig.PREF_PROFILE_TRAFFIC_STATS, true)
+    private val alwaysShowAddress = MmkvManager.decodeSettingsBool(AppConfig.PREF_ALWAYS_SHOW_ADDRESS, true)
     private var data: MutableList<ServersCache> = mutableListOf()
 
     @SuppressLint("NotifyDataSetChanged")
@@ -60,6 +63,11 @@ class MainRecyclerAdapter(
             holder.itemMainBinding.tvName.text = profile.remarks
             holder.itemMainBinding.tvStatistics.text = getAddress(profile)
             holder.itemMainBinding.tvType.text = getProtocolDescription(profile)
+
+            val traffic = if (showProfileTraffic) MmkvManager.decodeProfileTraffic(guid) else 0L
+            holder.itemMainBinding.tvProfileTraffic.visibility = if (traffic > 0L) View.VISIBLE else View.GONE
+            holder.itemMainBinding.tvProfileTraffic.text =
+                context.getString(R.string.profile_traffic_value, traffic.toTrafficString())
 
             //TestResult
             val aff = MmkvManager.decodeServerAffiliationInfo(guid)
@@ -124,6 +132,9 @@ class MainRecyclerAdapter(
      * @return Formatted address string
      */
     private fun getAddress(profile: ProfileItem): String {
+        if (alwaysShowAddress) {
+            return profile.getServerAddressAndPort()
+        }
         return profile.description.nullIfBlank() ?: AngConfigManager.generateDescription(profile)
     }
 

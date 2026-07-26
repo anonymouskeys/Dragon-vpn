@@ -23,6 +23,7 @@ object MmkvManager {
     private const val ID_PROFILE_FULL_CONFIG = "PROFILE_FULL_CONFIG"
     private const val ID_SERVER_RAW = "SERVER_RAW"
     private const val ID_SERVER_AFF = "SERVER_AFF"
+    private const val ID_PROFILE_TRAFFIC = "PROFILE_TRAFFIC"
     private const val ID_SUB = "SUB"
     private const val ID_ASSET = "ASSET"
     private const val ID_SETTING = "SETTING"
@@ -36,6 +37,7 @@ object MmkvManager {
     private val profileFullStorage by lazy { MMKV.mmkvWithID(ID_PROFILE_FULL_CONFIG, MMKV.MULTI_PROCESS_MODE) }
     private val serverRawStorage by lazy { MMKV.mmkvWithID(ID_SERVER_RAW, MMKV.MULTI_PROCESS_MODE) }
     private val serverAffStorage by lazy { MMKV.mmkvWithID(ID_SERVER_AFF, MMKV.MULTI_PROCESS_MODE) }
+    private val profileTrafficStorage by lazy { MMKV.mmkvWithID(ID_PROFILE_TRAFFIC, MMKV.MULTI_PROCESS_MODE) }
     private val subStorage by lazy { MMKV.mmkvWithID(ID_SUB, MMKV.MULTI_PROCESS_MODE) }
     private val assetStorage by lazy { MMKV.mmkvWithID(ID_ASSET, MMKV.MULTI_PROCESS_MODE) }
     private val settingsStorage by lazy { MMKV.mmkvWithID(ID_SETTING, MMKV.MULTI_PROCESS_MODE) }
@@ -230,6 +232,30 @@ object MmkvManager {
         }
         profileFullStorage.remove(guid)
         serverAffStorage.remove(guid)
+        profileTrafficStorage.remove(guid)
+    }
+
+    /**
+     * Returns accumulated proxy traffic for a profile.
+     */
+    fun decodeProfileTraffic(guid: String): Long {
+        if (guid.isBlank()) return 0L
+        return profileTrafficStorage.decodeLong(guid, 0L).coerceAtLeast(0L)
+    }
+
+    /**
+     * Adds traffic bytes to a profile counter. The counter is kept in a separate
+     * MMKV namespace so profile JSON never needs to be rewritten every few seconds.
+     */
+    fun addProfileTraffic(guid: String, bytes: Long) {
+        if (guid.isBlank() || bytes <= 0L) return
+        val current = decodeProfileTraffic(guid)
+        val updated = if (Long.MAX_VALUE - current < bytes) Long.MAX_VALUE else current + bytes
+        profileTrafficStorage.encode(guid, updated)
+    }
+
+    fun clearProfileTraffic(guid: String) {
+        if (guid.isNotBlank()) profileTrafficStorage.remove(guid)
     }
 
     /**
@@ -248,6 +274,7 @@ object MmkvManager {
             }
             profileFullStorage.remove(guid)
             serverAffStorage.remove(guid)
+            profileTrafficStorage.remove(guid)
         }
 
         serverList.clear()
@@ -309,6 +336,7 @@ object MmkvManager {
         val count = profileFullStorage.allKeys()?.count() ?: 0
         profileFullStorage.clearAll()
         serverAffStorage.clearAll()
+        profileTrafficStorage.clearAll()
         serverRawStorage.clearAll()
 
         decodeSubscriptions().forEach { sub ->

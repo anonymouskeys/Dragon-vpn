@@ -544,4 +544,10 @@
     <string name="tools_backup_restore_summary">Export, import, or restore Dragon VPN configuration.</string>
     <string name="title_pref_allow_insecure">Always allow insecure TLS</string>
     <string name="summary_pref_allow_insecure">Skip certificate verification for all TLS profiles. Use only when the proxy certificate cannot be verified.</string>
+
+    <string name="title_pref_profile_traffic_stats">Profile traffic statistics</string>
+    <string name="summary_pref_profile_traffic_stats">Accumulate and display traffic used by each selected profile</string>
+    <string name="title_pref_always_show_address">Always show server address</string>
+    <string name="summary_pref_always_show_address">Always display the endpoint address and port on profile cards</string>
+    <string name="profile_traffic_value">Traffic: %1$s</string>
 </resources>

@@ -543,4 +543,10 @@
     <string name="tools_backup_restore_summary">Экспорт, импорт и восстановление конфигурации Dragon VPN.</string>
     <string name="title_pref_allow_insecure">Всегда разрешать небезопасные</string>
     <string name="summary_pref_allow_insecure">Отключать проверку сертификата для всех TLS-профилей. Используйте только для прокси с непроверяемым сертификатом.</string>
+
+    <string name="title_pref_profile_traffic_stats">Статистика трафика профиля</string>
+    <string name="summary_pref_profile_traffic_stats">Накапливать и показывать трафик, использованный каждым выбранным профилем</string>
+    <string name="title_pref_always_show_address">Всегда показывать адрес</string>
+    <string name="summary_pref_always_show_address">Всегда отображать адрес и порт сервера в карточке профиля</string>
+    <string name="profile_traffic_value">Трафик: %1$s</string>
 </resources>

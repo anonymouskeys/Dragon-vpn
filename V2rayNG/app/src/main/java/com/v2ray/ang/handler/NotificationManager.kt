@@ -251,6 +251,12 @@ object NotificationManager {
 
         val proxyTotal = proxyUplink + proxyDownlink
         val directTotal = directUplink + directDownlink
+
+        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PROFILE_TRAFFIC_STATS, true) == true) {
+            MmkvManager.getSelectServer()?.let { selectedGuid ->
+                MmkvManager.addProfileTraffic(selectedGuid, proxyTotal)
+            }
+        }
         val zeroSpeed = proxyTotal + directTotal == 0L
         if (!zeroSpeed || !lastZeroSpeed) {
             val text = StringBuilder()
