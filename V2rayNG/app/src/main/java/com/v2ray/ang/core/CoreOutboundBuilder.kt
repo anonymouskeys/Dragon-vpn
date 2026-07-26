@@ -238,13 +238,66 @@ object CoreOutboundBuilder {
             }
         }
 
-        if (profileItem.security == AppConfig.TLS) {
-            outboundBean?.streamSettings?.let {
-                populateTlsSettings(it, profileItem, profileItem.server)
+        // HTTP CONNECT is a TCP-only transport. Keep the stream explicit and do not
+        // inherit camouflage/final-mask settings intended for VMess/VLESS transports.
+        outboundBean?.streamSettings?.let { streamSettings ->
+            streamSettings.network = NetworkType.TCP.type
+            streamSettings.tcpSettings = OutboundBean.StreamSettingsBean.TcpSettingsBean().apply {
+                header.type = "none"
+            }
+
+            if (profileItem.security == AppConfig.TLS) {
+                populateHttpProxyTlsSettings(streamSettings, profileItem)
+            } else {
+                streamSettings.security = null
+                streamSettings.tlsSettings = null
             }
         }
 
         return outboundBean
+    }
+
+    /**
+     * Configure TLS for an HTTPS forward proxy.
+     *
+     * HTTPS proxy links frequently use a literal IP address and a private or mismatched
+     * certificate. Sending that IP as SNI is not equivalent to omitting SNI and breaks
+     * a number of proxy deployments that work in NekoBox/sing-box. Proxy TLS also must
+     * not inherit Dragon's TLS fragmentation because it fragments the proxy handshake
+     * itself, before HTTP CONNECT has been established.
+     */
+    private fun populateHttpProxyTlsSettings(
+        streamSettings: OutboundBean.StreamSettingsBean,
+        profileItem: ProfileItem,
+    ) {
+        val globalAllowInsecure = MmkvManager.decodeSettingsBool(AppConfig.PREF_ALLOW_INSECURE, false)
+        val allowInsecure = (profileItem.insecure == true || globalAllowInsecure) &&
+                profileItem.pinnedCA256.isNullOrEmpty()
+        val explicitSni = profileItem.sni?.trim().orEmpty()
+        val serverName = when {
+            explicitSni.isNotEmpty() && Utils.isDomainName(explicitSni) -> explicitSni
+            profileItem.server.isNotNullEmpty() && Utils.isDomainName(profileItem.server) -> profileItem.server
+            else -> null
+        }
+
+        streamSettings.security = AppConfig.TLS
+        streamSettings.tlsSettings = OutboundBean.StreamSettingsBean.TlsSettingsBean(
+            allowInsecure = allowInsecure,
+            serverName = serverName,
+            alpn = profileItem.alpn?.split(",")?.map { it.trim() }
+                ?.filter { it.isNotEmpty() }?.takeIf { it.isNotEmpty() },
+            pinnedPeerCertSha256 = profileItem.pinnedCA256.nullIfBlank(),
+            verifyPeerCertByName = profileItem.verifyPeerCertByName.nullIfBlank(),
+        )
+        streamSettings.realitySettings = null
+        streamSettings.finalmask = null
+
+        LogUtil.i(
+            AppConfig.TAG,
+            "HTTPS proxy outbound: ${profileItem.getServerAddressAndPort()}, " +
+                    "sni=${serverName ?: "<none>"}, allowInsecure=$allowInsecure, " +
+                    "auth=${if (profileItem.username.isNotNullEmpty()) "basic" else "none"}"
+        )
     }
 
     private fun toOutboundWireguard(profileItem: ProfileItem): OutboundBean? {

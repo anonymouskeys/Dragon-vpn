@@ -601,8 +601,23 @@ object CoreConfigManager {
      * Configure local DNS inbounds, outbounds, and routing rules.
      */
     private fun configureLocalDns(configContext: CoreConfigContext, v2rayConfig: V2rayConfig) {
-        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_LOCAL_DNS_ENABLED) != true) {
+        val primaryProfile = configContext.resolvedOutbounds.firstOrNull()?.profile
+        val forceForTcpOnlyProxy = primaryProfile?.configType == EConfigType.HTTP
+        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_LOCAL_DNS_ENABLED) != true && !forceForTcpOnlyProxy) {
             return
+        }
+
+        if (forceForTcpOnlyProxy) {
+            // HTTP CONNECT cannot carry raw UDP. Route DNS-module traffic directly so
+            // hostname resolution remains functional instead of sending UDP/53 to the
+            // HTTP outbound and ending in closed-pipe/time-out errors.
+            v2rayConfig.routing.rules.add(
+                0,
+                V2rayConfig.RoutingBean.RulesBean(
+                    inboundTag = arrayListOf(AppConfig.TAG_DNS),
+                    outboundTag = AppConfig.TAG_DIRECT,
+                )
+            )
         }
 
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_FAKE_DNS_ENABLED) == true) {
