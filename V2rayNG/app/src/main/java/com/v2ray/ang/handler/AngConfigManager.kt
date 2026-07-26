@@ -181,10 +181,8 @@ object AngConfigManager {
      * @return A pair containing the number of configurations and subscriptions imported.
      */
     fun importBatchConfig(server: String?, subid: String, append: Boolean): Pair<Int, Int> {
-        var count = parseBatchConfig(SubscriptionContentParser.normalize(Utils.decode(server)), subid, append)
-        if (count <= 0) {
-            count = parseBatchConfig(SubscriptionContentParser.normalize(server), subid, append)
-        }
+        val decodedFeed = SubscriptionContentParser.decodeFeed(server)
+        var count = parseBatchConfig(decodedFeed, subid, append)
         if (count <= 0) {
             count = parseCustomConfigServer(server, subid, append)
         }
@@ -236,45 +234,77 @@ object AngConfigManager {
      * @return The number of configurations parsed.
      */
     private fun parseBatchConfig(servers: String?, subid: String, append: Boolean): Int {
-        try {
-            if (servers == null) {
-                return 0
-            }
-            // Find the currently selected server that belongs to the same subscription before replacement.
+        if (servers.isNullOrBlank()) return 0
+
+        return try {
             val removedSelected = getRemovedSelectedProfile(subid, append)
-
             val subItem = MmkvManager.decodeSubscription(subid)
-
-            // Normalize HTML-escaped feeds and parse Clash YAML before URI lines.
             val normalized = SubscriptionContentParser.normalize(servers)
-            val configs = SubscriptionContentParser.parseClash(normalized).toMutableList()
-            normalized.lines()
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .distinct()
-                .reversed()
-                .forEach {
-                    val config = parseConfig(it, subid, subItem)
-                    if (config != null) {
-                        configs.add(config)
-                    }
-                }
 
-            // Batch save all parsed configs (only one serverList read/write)
-            if (configs.isNotEmpty()) {
-                if (!append) {
-                    MmkvManager.removeServerViaSubid(subid)
-                }
-                val keyToProfile = batchSaveConfigs(configs, subid)
-                val matchKey = findMatchedProfileKey(keyToProfile, removedSelected)
-                matchKey?.let { MmkvManager.setSelectServer(it) }
+            // Keep memory bounded: parse and persist one profile at a time instead of
+            // materialising tens of thousands of ProfileItem objects in a list.
+            val newKeys = if (append) MmkvManager.decodeServerList(subid) else mutableListOf()
+            val seen = HashSet<String>(maxOf(256, minOf(65536, normalized.length / 96)))
+            var imported = 0
+            var selectedKey: String? = null
+            var firstKey: String? = null
+
+            fun store(config: ProfileItem) {
+                val fingerprint = profileFingerprint(config)
+                if (!seen.add(fingerprint)) return
+
+                val key = Utils.getUuid()
+                MmkvManager.encodeProfileDirect(key, JsonUtil.toJson(config))
+                newKeys.add(key)
+                imported += 1
+                if (firstKey == null) firstKey = key
+                if (selectedKey == null && profilesMatch(config, removedSelected)) selectedKey = key
             }
 
-            return configs.size
+            // Clash feeds are usually much smaller than giant URI lists. Parse them first.
+            SubscriptionContentParser.parseClash(normalized).forEach { config ->
+                config.subscriptionId = subid
+                config.description = generateDescription(config)
+                store(config)
+            }
+
+            normalized.lineSequence().forEach { rawLine ->
+                val line = rawLine.trim()
+                if (line.isEmpty()) return@forEach
+                parseConfig(line, subid, subItem)?.let(::store)
+            }
+
+            if (imported > 0) {
+                // Commit the new index only after all profiles were parsed. Old profiles are
+                // removed afterwards, so an interrupted import does not leave an empty group.
+                MmkvManager.replaceServerList(subid, newKeys)
+                (selectedKey ?: firstKey)?.let(MmkvManager::setSelectServer)
+            }
+            imported
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to parse batch config", e)
+            0
         }
-        return 0
+    }
+
+    private fun profileFingerprint(config: ProfileItem): String = buildString(192) {
+        append(config.configType.name).append('|')
+        append(config.server.orEmpty()).append('|')
+        append(config.serverPort.orEmpty()).append('|')
+        append(config.password.orEmpty()).append('|')
+        append(config.network.orEmpty()).append('|')
+        append(config.security.orEmpty()).append('|')
+        append(config.sni.orEmpty()).append('|')
+        append(config.path.orEmpty()).append('|')
+        append(config.remarks)
+    }
+
+    private fun profilesMatch(candidate: ProfileItem, target: ProfileItem?): Boolean {
+        if (target == null) return false
+        if (target.remarks.isNotBlank() && isSameText(candidate.remarks, target.remarks)) return true
+        return isSameText(candidate.server, target.server) &&
+                isSameText(candidate.serverPort, target.serverPort) &&
+                (target.password.isNullOrBlank() || isSameText(candidate.password, target.password))
     }
 
     /**
@@ -623,14 +653,9 @@ object AngConfigManager {
      * @return The number of configurations parsed.
      */
     private fun parseConfigViaSub(server: String?, subid: String, append: Boolean): Int {
-        var count = parseBatchConfig(SubscriptionContentParser.normalize(Utils.decode(server)), subid, append)
-        if (count <= 0) {
-            count = parseBatchConfig(SubscriptionContentParser.normalize(server), subid, append)
-        }
-        if (count <= 0) {
-            count = parseCustomConfigServer(server, subid, append)
-        }
-        return count
+        val decodedFeed = SubscriptionContentParser.decodeFeed(server)
+        val count = parseBatchConfig(decodedFeed, subid, append)
+        return if (count > 0) count else parseCustomConfigServer(server, subid, append)
     }
 
     /**

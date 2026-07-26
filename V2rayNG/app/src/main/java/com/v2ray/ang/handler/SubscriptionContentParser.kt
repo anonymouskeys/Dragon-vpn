@@ -17,6 +17,26 @@ import com.v2ray.ang.util.Utils
  * entries without adding a heavy YAML dependency to the Android application.
  */
 object SubscriptionContentParser {
+    /** Decode only feeds that actually look like a single Base64 payload.
+     * Avoids parsing both decoded and original copies for very large subscriptions.
+     */
+    fun decodeFeed(text: String?): String {
+        val source = text?.trim().orEmpty()
+        if (source.isEmpty()) return ""
+        if (source.contains("://") || source.contains('\n') || source.contains("proxies:")) {
+            return normalize(source)
+        }
+        val base64Like = source.length >= 16 && source.all {
+            it.isLetterOrDigit() || it == '+' || it == '/' || it == '-' || it == '_' || it == '=' || it.isWhitespace()
+        }
+        if (!base64Like) return normalize(source)
+        val decoded = Utils.tryDecodeBase64(source)
+        return if (!decoded.isNullOrBlank() &&
+            (decoded.contains("://") || decoded.contains('\n') || decoded.contains("proxies:"))) {
+            normalize(decoded)
+        } else normalize(source)
+    }
+
     fun normalize(text: String?): String {
         if (text == null) return ""
         return text

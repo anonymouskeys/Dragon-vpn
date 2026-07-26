@@ -38,6 +38,12 @@ import java.util.Collections
 import java.util.regex.PatternSyntaxException
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+    companion object {
+        // RecyclerView only needs a window of decoded profiles. Keeping all 35k JSON
+        // objects in memory causes ANR/OOM even though the rows themselves are virtualised.
+        private const val DISPLAY_PROFILE_LIMIT = 2500
+        private const val SEARCH_RESULT_LIMIT = 5000
+    }
     private var serverList = mutableListOf<String>() // MmkvManager.decodeServerList()
     var subscriptionId: String = MmkvManager.decodeSettingsString(AppConfig.CACHE_SUBSCRIPTION_ID, "").orEmpty()
     var keywordFilter = ""
@@ -121,7 +127,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: PatternSyntaxException) {
             null // Fallback to literal search if regex is invalid
         }
+        val resultLimit = if (kw.isEmpty()) DISPLAY_PROFILE_LIMIT else SEARCH_RESULT_LIMIT
         for (guid in serverList) {
+            if (serversCache.size >= resultLimit) break
             val profile = MmkvManager.decodeServerConfig(guid) ?: continue
             if (kw.isEmpty()) {
                 serversCache.add(ServersCache(guid, profile))

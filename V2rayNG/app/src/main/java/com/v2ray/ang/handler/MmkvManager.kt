@@ -87,6 +87,27 @@ object MmkvManager {
     }
 
 
+
+    /**
+     * Atomically replaces the GUID list for a subscription and removes profiles
+     * that are no longer referenced after the new list has been committed.
+     * This keeps the previous subscription usable until parsing has completed.
+     */
+    fun replaceServerList(subscriptionId: String, newServerList: MutableList<String>) {
+        val subId = getSubscriptionId(subscriptionId)
+        val oldServerList = decodeServerList(subId)
+        encodeServerList(newServerList, subId)
+
+        val retained = newServerList.toHashSet()
+        oldServerList.forEach { guid ->
+            if (guid !in retained) {
+                profileFullStorage.remove(guid)
+                serverAffStorage.remove(guid)
+                serverRawStorage.remove(guid)
+            }
+        }
+    }
+
     /**
      * Decodes the server list for a given subscription.
      * If subscriptionId is empty, returns ungrouped servers.
