@@ -47,5 +47,9 @@
             android:id="@+id/about"
             android:icon="@drawable/ic_about_24dp"
             android:title="@string/title_about" />
+        <item
+            android:id="@+id/check_update"
+            android:icon="@drawable/ic_check_update_24dp"
+            android:title="@string/update_check_for_update" />
     </group>
 </menu>

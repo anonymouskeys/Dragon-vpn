@@ -135,9 +135,9 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/dragon_group_more_actions"
+                    android:contentDescription="@string/menu_item_del_config"
                     android:padding="12dp"
-                    app:srcCompat="@drawable/ic_more_vert_24dp" />
+                    app:srcCompat="@drawable/ic_delete_24dp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

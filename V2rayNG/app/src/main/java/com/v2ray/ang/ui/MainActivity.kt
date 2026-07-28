@@ -829,6 +829,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             R.id.tools -> requestActivityLauncher.launch(Intent(this, ToolsActivity::class.java))
             R.id.documents -> requestActivityLauncher.launch(Intent(this, UserAssetActivity::class.java))
             R.id.about -> startActivity(Intent(this, AboutActivity::class.java))
+            R.id.check_update -> startActivity(Intent(this, CheckUpdateActivity::class.java))
         }
 
         binding.drawerLayout.closeDrawer(GravityCompat.START)

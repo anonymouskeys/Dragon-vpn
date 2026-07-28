@@ -47,7 +47,11 @@ class SubSettingRecyclerAdapter(
         }
 
         holder.itemSubSettingBinding.layoutShare.setOnClickListener {
-            onShareGroup(subId)
+            if (TextUtils.isEmpty(subItem.url)) {
+                onShareGroup(subId)
+            } else {
+                adapterListener?.onShare(subItem.url)
+            }
         }
 
         holder.itemSubSettingBinding.layoutUpdate.setOnClickListener {
@@ -56,6 +60,10 @@ class SubSettingRecyclerAdapter(
 
         holder.itemSubSettingBinding.layoutEdit.setOnClickListener {
             adapterListener?.onEdit(subId, position)
+        }
+
+        holder.itemSubSettingBinding.layoutMore.setOnClickListener {
+            adapterListener?.onRemove(subId, position)
         }
 
         holder.itemSubSettingBinding.chkEnable.setOnCheckedChangeListener { it, isChecked ->
@@ -80,17 +88,19 @@ class SubSettingRecyclerAdapter(
                 adapterListener?.onEdit(subId, position)
             }
         } else {
-            // Subscription-backed groups expose only the update action on the card.
+            // Subscription-backed groups expose share, update, edit and delete actions.
             holder.itemSubSettingBinding.layoutUrl.visibility = View.VISIBLE
             holder.itemSubSettingBinding.chkEnable.visibility = View.VISIBLE
             holder.itemSubSettingBinding.layoutLastUpdated.visibility = View.VISIBLE
             holder.itemSubSettingBinding.tvLastUpdated.visibility = View.VISIBLE
-            holder.itemSubSettingBinding.layoutShare.visibility = View.GONE
+            holder.itemSubSettingBinding.layoutShare.visibility = View.VISIBLE
             holder.itemSubSettingBinding.layoutUpdate.visibility = View.VISIBLE
-            holder.itemSubSettingBinding.layoutEdit.visibility = View.GONE
-            holder.itemSubSettingBinding.layoutMore.visibility = View.GONE
-            holder.itemSubSettingBinding.infoContainer.setOnClickListener(null)
-            holder.itemSubSettingBinding.infoContainer.isClickable = false
+            holder.itemSubSettingBinding.layoutEdit.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.layoutMore.visibility = View.VISIBLE
+            holder.itemSubSettingBinding.infoContainer.setOnClickListener {
+                adapterListener?.onEdit(subId, position)
+            }
+            holder.itemSubSettingBinding.infoContainer.isClickable = true
         }
     }
 
