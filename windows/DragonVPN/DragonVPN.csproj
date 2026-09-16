@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>DragonVPN</AssemblyName>
+    <RootNamespace>DragonVPN</RootNamespace>
+    <ApplicationIcon>Assets\dragon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\dragon.ico" />
+    <Resource Include="Assets\dragon_watermark.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\V2rayNG\app\src\main\res\values\strings.xml" Link="lang\en\strings.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\V2rayNG\app\src\main\res\values\strings_dpi.xml" Link="lang\en\strings_dpi.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\V2rayNG\app\src\main\res\values-ru\strings.xml" Link="lang\ru\strings.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\V2rayNG\app\src\main\res\values-ru\strings_dpi.xml" Link="lang\ru\strings_dpi.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\V2rayNG\app\src\main\res\values-zh-rCN\strings.xml" Link="lang\zh-CN\strings.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\V2rayNG\app\src\main\res\values-zh-rCN\strings_dpi.xml" Link="lang\zh-CN\strings_dpi.xml" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\V2rayNG\app\src\main\res\values-zh-rCN\strings_dpi.xml')" />
+    <Content Include="..\..\V2rayNG\app\src\main\res\values-fa\strings.xml" Link="lang\fa\strings.xml" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\V2rayNG\app\src\main\res\values-fa\strings_dpi.xml" Link="lang\fa\strings_dpi.xml" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\V2rayNG\app\src\main\res\values-fa\strings_dpi.xml')" />
+  </ItemGroup>
+</Project>
