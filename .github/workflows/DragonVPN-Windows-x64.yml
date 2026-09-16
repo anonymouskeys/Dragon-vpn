@@ -134,8 +134,10 @@ jobs:
       - name: Test ByeDPI routing integration
         shell: pwsh
         run: |
-          dotnet test .\v2rayN-src\v2rayN\ServiceLib.Tests\ServiceLib.Tests.csproj `
-            --configuration Release
+          dotnet test `
+            --project .\v2rayN-src\v2rayN\ServiceLib.Tests\ServiceLib.Tests.csproj `
+            --configuration Release `
+            -- --report-trx
 
       - name: Build Dragon VPN
         shell: pwsh
@@ -228,4 +230,5 @@ jobs:
           path: DragonVPN-Windows-x64.zip
           if-no-files-found: error
           retention-days: 30
+
 
