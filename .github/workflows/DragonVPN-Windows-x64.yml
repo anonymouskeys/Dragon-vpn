@@ -1,0 +1,231 @@
+name: Dragon VPN Windows x64
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/DragonVPN-Windows-x64.yml"
+
+permissions:
+  contents: read
+
+env:
+  V2RAYN_COMMIT: cef40d38eec545dbe5a736602549d2b72c4f64bc
+  BYEDPI_VERSION: "0.17.3"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned v2rayN source and apply Dragon VPN integration
+        shell: bash
+        run: |
+          git clone --filter=blob:none https://github.com/2dust/v2rayN.git v2rayN-src
+          git -C v2rayN-src checkout "$V2RAYN_COMMIT"
+          base64 -d > dragonvpn-byedpi.patch.gz <<'DRAGONVPN_PATCH'
+          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
+          DRAGONVPN_PATCH
+          gzip -dc dragonvpn-byedpi.patch.gz > dragonvpn-byedpi.patch
+          git -C v2rayN-src apply --check "$GITHUB_WORKSPACE/dragonvpn-byedpi.patch"
+          git -C v2rayN-src apply "$GITHUB_WORKSPACE/dragonvpn-byedpi.patch"
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test ByeDPI routing integration
+        shell: pwsh
+        run: |
+          dotnet test .\v2rayN-src\v2rayN\ServiceLib.Tests\ServiceLib.Tests.csproj `
+            --configuration Release
+
+      - name: Build Dragon VPN
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force package | Out-Null
+          dotnet publish .\v2rayN-src\v2rayN\v2rayN\v2rayN.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            -p:EnableWindowsTargeting=true `
+            --output .\package
+          dotnet publish .\v2rayN-src\v2rayN\AmazTool\AmazTool.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            -p:PublishTrimmed=true `
+            -p:EnableWindowsTargeting=true `
+            --output .\package
+
+      - name: Add v2rayN network cores
+        shell: pwsh
+        run: |
+          Invoke-WebRequest `
+            -Uri "https://github.com/2dust/v2rayN-core-bin/raw/refs/heads/master/v2rayN-windows-64.zip" `
+            -OutFile cores.zip
+          Expand-Archive cores.zip -DestinationPath cores
+          Copy-Item -Recurse -Force .\cores\v2rayN-windows-64\bin .\package\bin
+
+      - name: Add official ByeDPI
+        shell: pwsh
+        run: |
+          $headers = @{ "User-Agent" = "DragonVPN-Windows-build" }
+          $release = Invoke-RestMethod `
+            -Headers $headers `
+            -Uri "https://api.github.com/repos/hufrea/byedpi/releases/tags/v$env:BYEDPI_VERSION"
+          $asset = $release.assets | Where-Object {
+            $_.name -match "x86_64.*w64.*\.zip$"
+          } | Select-Object -First 1
+          if (-not $asset) {
+            throw "Windows x64 ByeDPI archive was not found in release v$env:BYEDPI_VERSION"
+          }
+          Invoke-WebRequest -Headers $headers -Uri $asset.browser_download_url -OutFile byedpi.zip
+          New-Item -ItemType Directory -Force .\package\bin\byedpi | Out-Null
+          Expand-Archive byedpi.zip -DestinationPath .\package\bin\byedpi
+          if (-not (Test-Path .\package\bin\byedpi\ciadpi.exe)) {
+            throw "ciadpi.exe is missing after extracting ByeDPI"
+          }
+
+      - name: Add simple Russian instructions
+        shell: pwsh
+        run: |
+          @'
+          Dragon VPN для Windows
+
+          1. Распакуйте ZIP в обычную папку.
+          2. Запустите DragonVPN.exe.
+          3. Выберите сервер.
+          4. Внизу окна включите переключатель «ByeDPI защита».
+          5. Нажмите «Установить системный прокси» или включите TUN.
+
+          ByeDPI запускается и выключается автоматически вместе с Dragon VPN.
+          Параметр maxSplit в Windows остаётся равен 0 (без ограничения).
+          '@ | Set-Content -Encoding UTF8 .\package\README_RU.txt
+
+      - name: Verify package
+        shell: pwsh
+        run: |
+          $required = @(
+            ".\package\DragonVPN.exe",
+            ".\package\bin\byedpi\ciadpi.exe",
+            ".\package\bin\xray\xray.exe",
+            ".\package\bin\sing_box\sing-box.exe"
+          )
+          foreach ($file in $required) {
+            if (-not (Test-Path $file)) { throw "Missing required file: $file" }
+          }
+          Get-FileHash .\package\DragonVPN.exe, .\package\bin\byedpi\ciadpi.exe `
+            -Algorithm SHA256 | Format-Table
+
+      - name: Create archive
+        shell: pwsh
+        run: |
+          Move-Item .\package .\DragonVPN-Windows-x64
+          7z a -tzip .\DragonVPN-Windows-x64.zip .\DragonVPN-Windows-x64 -mx=5
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: DragonVPN-Windows-x64
+          path: DragonVPN-Windows-x64.zip
+          if-no-files-found: error
+          retention-days: 30
+
