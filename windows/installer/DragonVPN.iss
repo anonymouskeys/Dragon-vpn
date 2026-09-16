@@ -24,7 +24,7 @@ WizardStyle=modern
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
-Name: "zh-CN"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "zh_cn"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 Name: "fa"; MessagesFile: "compiler:Default.isl,Persian.isl"
 
 [Files]
