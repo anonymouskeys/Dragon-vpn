@@ -83,7 +83,11 @@ jobs:
         run: |
           Invoke-WebRequest "https://www.wintun.net/builds/wintun-$env:WINTUN_VERSION.zip" -OutFile wintun.zip
           Expand-Archive wintun.zip -DestinationPath wintun
-          Copy-Item "wintun\wintun-$env:WINTUN_VERSION\bin\amd64\wintun.dll" package\bin\wintun.dll
+          $dll = Get-ChildItem wintun -Recurse -Filter wintun.dll |
+            Where-Object { $_.FullName -match '[\\/]amd64[\\/]' } |
+            Select-Object -First 1
+          if (-not $dll) { throw "amd64 wintun.dll was not found in the archive" }
+          Copy-Item $dll.FullName package\bin\wintun.dll
 
       - name: Add official ByeDPI
         shell: pwsh
