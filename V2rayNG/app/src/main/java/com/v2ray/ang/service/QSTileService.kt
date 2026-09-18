@@ -23,7 +23,7 @@ class QSTileService : TileService() {
      * @param state The state to set.
      */
     fun setState(state: Int) {
-        qsTile?.icon = Icon.createWithResource(applicationContext, R.drawable.ic_stat_name)
+        qsTile?.icon = Icon.createWithResource(applicationContext, R.drawable.ic_stat_dragon)
         if (state == Tile.STATE_INACTIVE) {
             qsTile?.state = Tile.STATE_INACTIVE
             qsTile?.label = getString(R.string.app_name)

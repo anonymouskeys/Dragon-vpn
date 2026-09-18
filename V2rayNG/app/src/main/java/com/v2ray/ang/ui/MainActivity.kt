@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.tabs.TabLayoutMediator
@@ -52,6 +53,13 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     private lateinit var groupPagerAdapter: GroupPagerAdapter
     private var tabMediator: TabLayoutMediator? = null
     private var dpiSwitch: SwitchMaterial? = null
+    private val groupPageCallback = object : ViewPager2.OnPageChangeCallback() {
+        override fun onPageSelected(position: Int) {
+            groupPagerAdapter.groups.getOrNull(position)?.let { group ->
+                mainViewModel.subscriptionIdChanged(group.id)
+            }
+        }
+    }
 
     private val requestVpnPermission = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == RESULT_OK) {
@@ -77,6 +85,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         groupPagerAdapter = GroupPagerAdapter(this, emptyList())
         binding.viewPager.adapter = groupPagerAdapter
         binding.viewPager.isUserInputEnabled = true
+        binding.viewPager.registerOnPageChangeCallback(groupPageCallback)
 
         // setup navigation drawer
         setupNavigationDrawer()
@@ -313,10 +322,6 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             true
         }
 
-            R.id.import_from_file -> {
-                importFromFile()
-                true
-            }
             R.id.export_to_file -> {
                 exportToFile()
                 true
@@ -492,28 +497,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         return true
     }
 
-    /**
-     * import config from clipboard
-     */
-    private val importFileLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
-        if (uri == null) return@registerForActivityResult
-        try {
-            contentResolver.openInputStream(uri)?.bufferedReader()?.use { reader ->
-                val content = reader.readText()
-                val (count, _) = com.v2ray.ang.handler.AngConfigManager.importBatchConfig(content, "", false)
-                if (count > 0) {
-                    mainViewModel.reloadServerList()
-                    android.widget.Toast.makeText(this, "Успех! Импортировано серверов: $count", android.widget.Toast.LENGTH_LONG).show()
-                } else {
-                    android.widget.Toast.makeText(this, "В файле не найдено рабочих конфигураций", android.widget.Toast.LENGTH_SHORT).show()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            android.widget.Toast.makeText(this, "Ошибка чтения файла базы", android.widget.Toast.LENGTH_SHORT).show()
-        }
-    }
-
+    /** Exports all currently displayed configurations to a user-selected text file. */
     private val exportFileLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/plain")) { uri ->
         if (uri == null) return@registerForActivityResult
         try {
@@ -535,10 +519,6 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             e.printStackTrace()
             android.widget.Toast.makeText(this, "Ошибка записи файла", android.widget.Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun importFromFile() {
-        importFileLauncher.launch("*/*")
     }
 
     private fun exportToFile() {
@@ -837,6 +817,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     }
 
     override fun onDestroy() {
+        binding.viewPager.unregisterOnPageChangeCallback(groupPageCallback)
         tabMediator?.detach()
         super.onDestroy()
     }

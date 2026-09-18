@@ -20,7 +20,7 @@
             android:layout_height="45dp"
             android:importantForAccessibility="no"
             android:padding="@dimen/padding_spacing_dp16"
-            app:srcCompat="@drawable/ic_stat_name" />
+            app:srcCompat="@drawable/ic_stat_dragon" />
     </LinearLayout>
 
     <TextView

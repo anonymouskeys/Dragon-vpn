@@ -96,6 +96,9 @@ class RealPingWorkerService(
                     } else {
                         testHandshakeProfile(guid, dpiRunning)
                     }
+                    // A blocking socket/native call may return after the user has changed groups.
+                    // Never publish that stale result into the newly selected group.
+                    coroutineContext.ensureActive()
                     publishFinal(result)
                 }
             }

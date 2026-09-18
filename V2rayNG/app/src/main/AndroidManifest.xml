@@ -252,7 +252,7 @@
             android:name="com.v2ray.ang.service.QSTileService"
             android:exported="true"
             android:foregroundServiceType="specialUse"
-            android:icon="@drawable/ic_stat_name"
+            android:icon="@drawable/ic_stat_dragon"
             android:label="@string/app_tile_name"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:process=":RunSoLibV2RayDaemon">

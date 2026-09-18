@@ -153,7 +153,7 @@ object NotificationHelper {
 
         val displayTitle = title.ifEmpty { context.getString(R.string.app_name) }
         return NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_stat_name)
+            .setSmallIcon(R.drawable.ic_stat_dragon)
             .setContentTitle(displayTitle)
             .setContentText(content)
             .setOngoing(false)
@@ -162,4 +162,3 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
     }
 }
-

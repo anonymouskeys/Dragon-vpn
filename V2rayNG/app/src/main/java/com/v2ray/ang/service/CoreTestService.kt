@@ -123,6 +123,13 @@ class CoreTestService : Service() {
     ) {
         LogUtil.i(AppConfig.TAG, "CoreTestService starting worker   subscription ${message.subscriptionId}")
 
+        // A new request always replaces the previous batch. Its generation was advanced in
+        // onStartCommand, so late callbacks from the cancelled workers are ignored below.
+        val previousWorkers = ArrayList(activeWorkers)
+        previousWorkers.forEach { it.cancel() }
+        activeWorkers.clear()
+        releaseDpiTestOwner()
+
         val titleRes = when (message.testMode) {
             TestServiceMessage.TEST_MODE_SMART -> R.string.title_smart_test_all_server
             TestServiceMessage.TEST_MODE_TCP -> R.string.title_tcp_test_all_server
@@ -147,12 +154,6 @@ class CoreTestService : Service() {
             return
         }
 
-        // A second tap while a batch is alive must not cancel and restart hundreds of tests.
-        if (activeWorkers.isNotEmpty()) {
-            LogUtil.i(AppConfig.TAG, "CoreTestService: batch already running; duplicate start ignored")
-            return
-        }
-
         if (generation != commandGeneration.get() || serviceJob.isCancelled) return
 
         when (message.testMode) {
@@ -163,21 +164,23 @@ class CoreTestService : Service() {
                     releaseDpiTestOwner()
                     return
                 }
-                startStandardWorker(guidsList, TestServiceMessage.TEST_MODE_HANDSHAKE)
+                startStandardWorker(guidsList, TestServiceMessage.TEST_MODE_HANDSHAKE, generation)
             }
-            else -> startStandardWorker(guidsList, TestServiceMessage.TEST_MODE_TCP)
+            else -> startStandardWorker(guidsList, TestServiceMessage.TEST_MODE_TCP, generation)
         }
     }
 
-    private fun startStandardWorker(guids: List<String>, testMode: String) {
-        handleWorkerEvent(RealPingEvent.Progress("0 / ${guids.size}")) {}
+    private fun startStandardWorker(guids: List<String>, testMode: String, generation: Int) {
+        handleWorkerEvent(RealPingEvent.Progress("0 / ${guids.size}"), generation) {}
 
         lateinit var worker: RealPingWorkerService
         worker = RealPingWorkerService(
             context = this,
             guids = guids,
             testMode = testMode,
-            onEvent = { event -> handleWorkerEvent(event) { activeWorkers.remove(worker) } }
+            onEvent = { event ->
+                handleWorkerEvent(event, generation) { activeWorkers.remove(worker) }
+            }
         )
         activeWorkers.add(worker)
         worker.start()
@@ -198,14 +201,14 @@ class CoreTestService : Service() {
             acquireDpiTestOwnerIfNeeded()
             if (generation != commandGeneration.get() || serviceJob.isCancelled) {
                 releaseDpiTestOwner()
-                finishBatch("-1")
+                finishBatch("-1", generation)
                 return
             }
-            startSmartHandshake(directHandshakeGuids)
+            startSmartHandshake(directHandshakeGuids, generation)
             return
         }
 
-        publishStageProgress("TCP", "0 / ${tcpGuids.size}")
+        publishStageProgress("TCP", "0 / ${tcpGuids.size}", generation)
 
         lateinit var tcpWorker: RealPingWorkerService
         tcpWorker = RealPingWorkerService(
@@ -213,17 +216,21 @@ class CoreTestService : Service() {
             guids = tcpGuids,
             testMode = TestServiceMessage.TEST_MODE_TCP,
             onEvent = onEvent@{ event ->
+                if (generation != commandGeneration.get()) {
+                    if (event is RealPingEvent.Finish) activeWorkers.remove(tcpWorker)
+                    return@onEvent
+                }
                 when (event) {
                     is RealPingEvent.Result -> {
                         MmkvManager.encodeServerTestDelayMillis(event.guid, event.delayMillis)
                         MessageUtil.sendMsg2UI(this, AppConfig.MSG_MEASURE_CONFIG_SUCCESS, event.guid)
                         if (event.delayMillis >= 0L) tcpPassed.add(event.guid)
                     }
-                    is RealPingEvent.Progress -> publishStageProgress("TCP", event.text)
+                    is RealPingEvent.Progress -> publishStageProgress("TCP", event.text, generation)
                     is RealPingEvent.Finish -> {
                         activeWorkers.remove(tcpWorker)
                         if (event.status != "0" || generation != commandGeneration.get() || serviceJob.isCancelled) {
-                            finishBatch(event.status)
+                            finishBatch(event.status, generation)
                             return@onEvent
                         }
 
@@ -231,17 +238,17 @@ class CoreTestService : Service() {
                         // plain TCP socket, so Smart Test sends them directly to handshake.
                         val handshakeGuids = (directHandshakeGuids + tcpPassed).distinct()
                         if (handshakeGuids.isEmpty()) {
-                            finishBatch("0")
+                            finishBatch("0", generation)
                             return@onEvent
                         }
 
                         acquireDpiTestOwnerIfNeeded()
                         if (generation != commandGeneration.get() || serviceJob.isCancelled) {
                             releaseDpiTestOwner()
-                            finishBatch("-1")
+                            finishBatch("-1", generation)
                             return@onEvent
                         }
-                        startSmartHandshake(handshakeGuids)
+                        startSmartHandshake(handshakeGuids, generation)
                     }
                 }
             }
@@ -250,8 +257,8 @@ class CoreTestService : Service() {
         tcpWorker.start()
     }
 
-    private fun startSmartHandshake(guids: List<String>) {
-        publishStageProgress("Handshake", "0 / ${guids.size}")
+    private fun startSmartHandshake(guids: List<String>, generation: Int) {
+        publishStageProgress("Handshake", "0 / ${guids.size}", generation)
         lateinit var worker: RealPingWorkerService
         worker = RealPingWorkerService(
             context = this,
@@ -259,8 +266,8 @@ class CoreTestService : Service() {
             testMode = TestServiceMessage.TEST_MODE_HANDSHAKE,
             onEvent = { event ->
                 when (event) {
-                    is RealPingEvent.Progress -> publishStageProgress("Handshake", event.text)
-                    else -> handleWorkerEvent(event) { activeWorkers.remove(worker) }
+                    is RealPingEvent.Progress -> publishStageProgress("Handshake", event.text, generation)
+                    else -> handleWorkerEvent(event, generation) { activeWorkers.remove(worker) }
                 }
             }
         )
@@ -268,7 +275,8 @@ class CoreTestService : Service() {
         worker.start()
     }
 
-    private fun publishStageProgress(stage: String, progress: String) {
+    private fun publishStageProgress(stage: String, progress: String, generation: Int) {
+        if (generation != commandGeneration.get()) return
         val text = "$stage: $progress"
         NotificationHelper.updateNotification(
             channelType = NotificationChannelType.CORE_TEST,
@@ -278,14 +286,23 @@ class CoreTestService : Service() {
         MessageUtil.sendMsg2UI(this, AppConfig.MSG_MEASURE_CONFIG_NOTIFY, text)
     }
 
-    private fun finishBatch(status: String) {
+    private fun finishBatch(status: String, generation: Int) {
+        if (generation != commandGeneration.get()) return
         MessageUtil.sendMsg2UI(this, AppConfig.MSG_MEASURE_CONFIG_FINISH, status)
         releaseDpiTestOwner()
         NotificationHelper.stopForeground(this)
         stopSelf()
     }
 
-    private fun handleWorkerEvent(event: RealPingEvent, onWorkerDone: () -> Unit) {
+    private fun handleWorkerEvent(
+        event: RealPingEvent,
+        generation: Int,
+        onWorkerDone: () -> Unit
+    ) {
+        if (generation != commandGeneration.get()) {
+            if (event is RealPingEvent.Finish) onWorkerDone()
+            return
+        }
         when (event) {
             is RealPingEvent.Progress -> {
                 NotificationHelper.updateNotification(
@@ -318,6 +335,7 @@ class CoreTestService : Service() {
         val snapshot = ArrayList(activeWorkers)
         snapshot.forEach { it.cancel() }
         activeWorkers.clear()
+        MessageUtil.sendMsg2UI(this, AppConfig.MSG_MEASURE_CONFIG_FINISH, "-1")
         releaseDpiTestOwner()
         NotificationHelper.stopForeground(this)
         stopSelf()

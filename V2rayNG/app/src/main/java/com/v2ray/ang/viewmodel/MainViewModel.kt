@@ -40,19 +40,14 @@ import java.util.Collections
 import java.util.regex.PatternSyntaxException
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    companion object {
-        // RecyclerView only needs a window of decoded profiles. Keeping all 35k JSON
-        // objects in memory causes ANR/OOM even though the rows themselves are virtualised.
-        private const val DISPLAY_PROFILE_LIMIT = 2500
-        private const val SEARCH_RESULT_LIMIT = 5000
-    }
     private var serverList = mutableListOf<String>() // MmkvManager.decodeServerList()
     var subscriptionId: String = MmkvManager.decodeSettingsString(AppConfig.CACHE_SUBSCRIPTION_ID, "").orEmpty()
     var keywordFilter = ""
     val serversCache = mutableListOf<ServersCache>()
     val isRunning by lazy { MutableLiveData<Boolean>() }
     val updateListAction by lazy { MutableLiveData<Int>() }
-    val updateTestResultAction by lazy { MutableLiveData<String>() }
+    val updateTestResultAction by lazy { MutableLiveData<String?>() }
+    private var batchTestActive = false
 
     /**
      * Refer to the official documentation for [registerReceiver](https://developer.android.com/reference/androidx/core/content/ContextCompat#registerReceiver(android.content.Context,android.content.BroadcastReceiver,android.content.IntentFilter,int):
@@ -129,9 +124,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: PatternSyntaxException) {
             null // Fallback to literal search if regex is invalid
         }
-        val resultLimit = if (kw.isEmpty()) DISPLAY_PROFILE_LIMIT else SEARCH_RESULT_LIMIT
         for (guid in serverList) {
-            if (serversCache.size >= resultLimit) break
             val profile = MmkvManager.decodeServerConfig(guid) ?: continue
             if (kw.isEmpty()) {
                 serversCache.add(ServersCache(guid, profile))
@@ -209,11 +202,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun cancelBatchTest() {
+        batchTestActive = false
+        updateTestResultAction.value = null
         MessageUtil.sendMsg2TestService(
             getApplication(),
             TestServiceMessage(key = AppConfig.MSG_MEASURE_CONFIG_CANCEL)
         )
-        updateTestResultAction.value = getApplication<AngApplication>().getString(R.string.msg_test_cancelled)
     }
 
     private fun currentGroupGuids(): List<String> =
@@ -269,6 +263,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         if (total == 0) return
 
+        batchTestActive = true
         updateListAction.value = -1
         updateTestResultAction.value =
             getApplication<AngApplication>().getString(R.string.connection_runing_task_left, "0 / $total")
@@ -300,6 +295,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun subscriptionIdChanged(id: String) {
         if (subscriptionId != id) {
+            if (batchTestActive) {
+                cancelBatchTest()
+            }
             subscriptionId = id
             MmkvManager.encodeSettings(AppConfig.CACHE_SUBSCRIPTION_ID, subscriptionId)
         }
@@ -536,12 +534,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 AppConfig.MSG_MEASURE_CONFIG_NOTIFY -> {
                     val content = intent.getStringExtra("content")
+                    batchTestActive = true
                     updateTestResultAction.value =
                         getApplication<AngApplication>().getString(R.string.connection_runing_task_left, content)
                 }
 
                 AppConfig.MSG_MEASURE_CONFIG_FINISH -> {
                     val content = intent.getStringExtra("content")
+                    batchTestActive = false
+                    updateTestResultAction.value = null
                     if (content == "0") {
                         onTestsFinished()
                     }

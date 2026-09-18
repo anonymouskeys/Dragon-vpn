@@ -28,7 +28,6 @@
             <item android:id="@+id/import_qrcode" android:title="@string/menu_item_import_config_qrcode" />
             <item android:id="@+id/import_clipboard" android:title="@string/menu_item_import_config_clipboard" />
             <item android:id="@+id/import_local" android:title="@string/menu_item_import_config_local" />
-            <item android:id="@+id/import_from_file" android:title="@string/dragon_import_from_file" />
             <item android:title="@string/dragon_menu_create_manual">
                 <menu>
                     <item android:id="@+id/import_manually_policy_group" android:title="@string/menu_item_import_config_policy_group" />
