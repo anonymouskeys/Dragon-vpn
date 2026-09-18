@@ -33,10 +33,8 @@
             android:title="@string/title_pref_fragment_interval" />
 
         <EditTextPreference
-            android:defaultValue="10"
             android:inputType="number"
             android:key="pref_fragment_maxsplit"
-            android:summary="10"
             android:title="@string/title_pref_fragment_maxsplit" />
     </PreferenceCategory>
 

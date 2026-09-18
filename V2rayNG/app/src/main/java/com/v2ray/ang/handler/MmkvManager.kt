@@ -691,6 +691,13 @@ object MmkvManager {
     }
 
     /**
+     * Removes a setting so optional values are not emitted as configured defaults.
+     */
+    fun removeSetting(key: String) {
+        settingsStorage.remove(key)
+    }
+
+    /**
      * Decodes the settings string.
      *
      * @param key The settings key.

@@ -41,6 +41,7 @@ object SettingsManager {
     private var runtimeSocksPort: Int? = null
 
     fun initApp(context: Context) {
+        migrateOptionalFragmentMaxSplit()
         ensureDefaultSettings()
         //ensureDefaultSubscription()
         initRoutingRulesets(context)
@@ -531,7 +532,22 @@ object SettingsManager {
         ensureDefaultValue(AppConfig.PREF_MUX_XUDP_CONCURRENCY, "8")
         ensureDefaultValue(AppConfig.PREF_FRAGMENT_LENGTH, "50-100")
         ensureDefaultValue(AppConfig.PREF_FRAGMENT_INTERVAL, "10-20")
-        ensureDefaultValue(AppConfig.PREF_FRAGMENT_MAXSPLIT, "10")
+    }
+
+    /**
+     * Older DragonVPN builds wrote 10 even when the user never configured maxSplit.
+     * Clear that generated value once; later values are always explicit user choices.
+     */
+    private fun migrateOptionalFragmentMaxSplit() {
+        val migrationKey = "fragment_maxsplit_optional_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
+            return
+        }
+
+        if (MmkvManager.decodeSettingsString(AppConfig.PREF_FRAGMENT_MAXSPLIT) == "10") {
+            MmkvManager.removeSetting(AppConfig.PREF_FRAGMENT_MAXSPLIT)
+        }
+        MmkvManager.encodeSettings(migrationKey, true)
     }
 
     private fun ensureDefaultValue(key: String, default: String) {
