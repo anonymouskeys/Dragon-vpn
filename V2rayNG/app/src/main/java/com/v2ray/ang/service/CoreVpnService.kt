@@ -27,6 +27,7 @@ import com.v2ray.ang.handler.NotificationManager
 import com.v2ray.ang.handler.SettingsManager
 import com.v2ray.ang.root.RootLanSharing
 import com.v2ray.ang.util.LogUtil
+import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.util.MyContextWrapper
 import com.v2ray.ang.util.Utils
 import java.lang.ref.SoftReference
@@ -129,9 +130,17 @@ class CoreVpnService : VpnService(), ServiceControl {
         LogUtil.i(AppConfig.TAG, "StartCore-VPN: Service command received")
         NotificationManager.showNotification(null)
         val configured = setupVpnService()
-        if (configured) startService()
+        if (configured) {
+            startService()
+        } else {
+            MessageUtil.sendMsg2UI(
+                this,
+                AppConfig.MSG_STATE_START_FAILURE,
+                getString(com.anonymouskeys.monstervpn.R.string.toast_services_failure)
+            )
+        }
         isStarting = false
-        return START_STICKY
+        return if (configured) START_STICKY else START_NOT_STICKY
         //return super.onStartCommand(intent, flags, startId)
     }
 
@@ -436,4 +445,3 @@ class CoreVpnService : VpnService(), ServiceControl {
         ByeDpiManager.release(ByeDpiManager.Owner.VPN_SERVICE)
     }
 }
-

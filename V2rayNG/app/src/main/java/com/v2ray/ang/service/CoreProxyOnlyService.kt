@@ -8,6 +8,7 @@ import com.v2ray.ang.AppConfig
 import com.v2ray.ang.contracts.ServiceControl
 import com.v2ray.ang.core.CoreServiceManager
 import com.v2ray.ang.handler.SettingsManager
+import com.v2ray.ang.handler.NotificationManager
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.MyContextWrapper
 import java.lang.ref.SoftReference
@@ -31,7 +32,15 @@ class CoreProxyOnlyService : Service(), ServiceControl {
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         LogUtil.i(AppConfig.TAG, "StartCore-Proxy: Service command received")
-        CoreServiceManager.startCoreLoop(null)
+        NotificationManager.showNotification(null)
+        if (CoreServiceManager.isRunning() && !CoreServiceManager.isStopping()) {
+            LogUtil.w(AppConfig.TAG, "StartCore-Proxy: Duplicate start ignored")
+            return START_STICKY
+        }
+        if (!CoreServiceManager.startCoreLoop(null)) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         return START_STICKY
     }
 

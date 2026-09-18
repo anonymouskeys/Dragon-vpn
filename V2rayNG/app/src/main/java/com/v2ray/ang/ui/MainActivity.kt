@@ -210,7 +210,9 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             checkAndRequestPermission(PermissionType.ACCESS_LOCAL_NETWORK) {}
         }
 
-        CoreServiceManager.startVService(this)
+        if (!CoreServiceManager.startVService(this)) {
+            applyRunningState(isLoading = false, isRunning = false)
+        }
     }
 
     fun restartV2Ray() {

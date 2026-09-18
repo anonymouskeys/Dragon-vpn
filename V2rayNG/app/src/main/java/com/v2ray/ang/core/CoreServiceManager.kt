@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.system.OsConstants
 import androidx.core.content.ContextCompat
@@ -36,6 +38,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.ProcessFinder
@@ -52,6 +56,8 @@ object CoreServiceManager {
     private var browserDialer: IDialerService? = null
     private var receiverRegistered = false
     private var delayJob: Job? = null
+    @Volatile
+    private var coreStopJob: Job? = null
     private val lifecycleGeneration = AtomicLong(0)
 
     var serviceControl: SoftReference<ServiceControl>? = null
@@ -98,7 +104,7 @@ object CoreServiceManager {
      * @param context The context from which the service is started.
      * @param guid The GUID of the server configuration to use (optional).
      */
-    fun startVService(context: Context, guid: String? = null) {
+    fun startVService(context: Context, guid: String? = null): Boolean {
         LogUtil.i(AppConfig.TAG, "StartCore-Manager: startVService from ${context::class.java.simpleName}")
 
         if (guid != null) {
@@ -110,7 +116,9 @@ object CoreServiceManager {
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "StartCore-Manager: ${e.message}", e)
             context.toast(e.message ?: e.javaClass.simpleName)
+            return false
         }
+        return true
     }
 
     /**
@@ -128,6 +136,9 @@ object CoreServiceManager {
      */
     fun isRunning() = coreController.isRunning
 
+    /** True while the previous native core is still releasing its resources. */
+    fun isStopping() = coreStopJob?.isActive == true
+
     /**
      * Gets the name of the currently running server.
      * @return The name of the running server.
@@ -144,7 +155,7 @@ object CoreServiceManager {
      */
     @Throws(Exception::class)
     private fun startContextService(context: Context) {
-        if (coreController.isRunning) {
+        if (coreController.isRunning && coreStopJob?.isActive != true) {
             LogUtil.w(AppConfig.TAG, "StartCore-Manager: Core already running")
             return
         }
@@ -221,6 +232,31 @@ object CoreServiceManager {
      */
     @Synchronized
     fun startCoreLoop(vpnInterface: ParcelFileDescriptor?): Boolean {
+        // A stop is performed off the main thread. A quick reconnect must wait for it;
+        // otherwise the new service sees the old core as running and silently fails.
+        coreStopJob?.let { pendingStop ->
+            val stopped = runBlocking {
+                withTimeoutOrNull(CORE_STOP_WAIT_MS) {
+                    pendingStop.join()
+                    true
+                } ?: false
+            }
+            if (!stopped) {
+                LogUtil.e(AppConfig.TAG, "StartCore-Manager: Timed out waiting for core shutdown")
+                getService()?.let { service ->
+                    MessageUtil.sendMsg2UI(
+                        service,
+                        AppConfig.MSG_STATE_START_FAILURE,
+                        service.getString(R.string.toast_services_failure)
+                    )
+                }
+                return false
+            }
+            if (coreStopJob === pendingStop) {
+                coreStopJob = null
+            }
+        }
+
         if (coreController.isRunning) {
             LogUtil.w(AppConfig.TAG, "StartCore-Manager: Core already running")
             return false
@@ -313,8 +349,8 @@ object CoreServiceManager {
         delayJob?.cancel()
         delayJob = null
 
-        if (coreController.isRunning) {
-            CoroutineScope(Dispatchers.IO).launch {
+        if (coreController.isRunning && coreStopJob?.isActive != true) {
+            coreStopJob = CoroutineScope(Dispatchers.IO).launch {
                 try {
                     coreController.stopLoop()
                 } catch (e: Exception) {
@@ -550,9 +586,15 @@ object CoreServiceManager {
 
                 AppConfig.MSG_STATE_RESTART -> {
                     LogUtil.i(AppConfig.TAG, "StartCore-Manager: Restart service")
+                    val restartContext = serviceControl.getService().applicationContext
                     serviceControl.stopService()
-                    Thread.sleep(500L)
-                    startVService(serviceControl.getService())
+                    // Let onDestroy finish (especially root/forward-proxy cleanup) before
+                    // starting again. Sleeping here would block the main thread and prevent
+                    // onDestroy from running, so those modes would stop but never restart.
+                    Handler(Looper.getMainLooper()).postDelayed(
+                        { startVService(restartContext) },
+                        RESTART_DELAY_MS
+                    )
                 }
 
                 AppConfig.MSG_MEASURE_DELAY -> {
@@ -573,4 +615,7 @@ object CoreServiceManager {
             }
         }
     }
+
+    private const val CORE_STOP_WAIT_MS = 3_500L
+    private const val RESTART_DELAY_MS = 500L
 }
