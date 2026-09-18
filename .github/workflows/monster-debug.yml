@@ -1,4 +1,4 @@
-name: DragonVPN Main Debug
+name: DragonVPN Main Signed APK
 
 on:
   push:
@@ -108,19 +108,58 @@ jobs:
           echo "Downloaded libv2ray.aar:"
           ls -lh V2rayNG/app/libs/libv2ray.aar
 
-      - name: Build F-Droid debug APK
+      - name: Validate release signing secrets
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name secret is missing"
+              exit 1
+            fi
+          done
+
+      - name: Restore release signing keystore
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dragonvpn-release.jks"
+          test -s "$RUNNER_TEMP/dragonvpn-release.jks"
+
+      - name: Build signed F-Droid release APK
         working-directory: V2rayNG
         shell: bash
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/dragonvpn-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace clean assembleFdroidDebug
+          ./gradlew \
+            --no-daemon \
+            --stacktrace \
+            clean \
+            assembleFdroidRelease \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_FILE" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
 
       - name: Verify native libraries in APK
         shell: bash
         run: |
           set -euo pipefail
-          APK="$(find V2rayNG/app/build/outputs/apk/fdroid/debug -maxdepth 1 -type f -name '*.apk' | head -n 1)"
+          APK="$(find V2rayNG/app/build/outputs/apk/fdroid/release -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' ! -name '*unaligned*' | head -n 1)"
           test -n "$APK"
           test -s "$APK"
 
@@ -134,10 +173,30 @@ jobs:
           echo "Verified native payload in $APK"
           grep -E 'lib/(arm64-v8a|armeabi-v7a|x86|x86_64)/(libhev-socks5-tunnel|libhevsockstun|libciadpi)\.so' "$RUNNER_TEMP/apk-files.txt"
 
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find V2rayNG/app/build/outputs/apk/fdroid/release -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' ! -name '*unaligned*' | head -n 1)"
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs "$APK" | tee "$RUNNER_TEMP/dragonvpn-signing-certificate.txt"
+          grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' "$RUNNER_TEMP/dragonvpn-signing-certificate.txt"
+
+      - name: Prepare signed update artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find V2rayNG/app/build/outputs/apk/fdroid/release -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' ! -name '*unaligned*' | head -n 1)"
+          mkdir -p release-signed
+          cp "$APK" release-signed/DragonVPN-v2.3.2-universal-signed.apk
+          cp "$RUNNER_TEMP/dragonvpn-signing-certificate.txt" release-signed/DragonVPN-signing-certificate.txt
+          sha256sum release-signed/DragonVPN-v2.3.2-universal-signed.apk > release-signed/DragonVPN-v2.3.2-universal-signed.apk.sha256
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DragonVPN-Xray-fdroid-debug
-          path: V2rayNG/app/build/outputs/apk/fdroid/debug/*.apk
+          name: DragonVPN-Xray-fdroid-release-signed
+          path: release-signed/
           if-no-files-found: error
           retention-days: 14
