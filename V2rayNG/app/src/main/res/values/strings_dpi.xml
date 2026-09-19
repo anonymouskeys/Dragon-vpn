@@ -29,4 +29,5 @@
     <string name="dpi_level_maximum">Maximum</string>
     <string name="dpi_expert">Expert</string>
     <string name="toast_dpi_level_applied">DPI level applied</string>
+    <string name="dpi_start_failed">DPI could not start. VPN was not started. See the logs.</string>
 </resources>

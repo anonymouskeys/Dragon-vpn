@@ -291,7 +291,12 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         dpiSwitch = dpiItem?.actionView?.findViewById(R.id.switch_dpi)
         dpiSwitch?.apply {
             isChecked = MmkvManager.decodeSettingsBool(AppConfig.PREF_DPI_ENABLED, false)
-            setOnClickListener { showDpiLevelDialog() }
+            setOnClickListener {
+                // SwitchMaterial toggles before opening the picker. Only a confirmed
+                // selection changes the saved setting, including when the dialog is cancelled.
+                isChecked = MmkvManager.decodeSettingsBool(AppConfig.PREF_DPI_ENABLED, false)
+                showDpiLevelDialog()
+            }
             setOnLongClickListener {
                 requestActivityLauncher.launch(Intent(this@MainActivity, SettingsActivity::class.java))
                 true

@@ -29,4 +29,5 @@
     <string name="dpi_level_maximum">Максимальный</string>
     <string name="dpi_expert">Эксперт</string>
     <string name="toast_dpi_level_applied">Уровень DPI применён</string>
+    <string name="dpi_start_failed">Не удалось запустить DPI. VPN не запущен. Подробности — в журнале.</string>
 </resources>

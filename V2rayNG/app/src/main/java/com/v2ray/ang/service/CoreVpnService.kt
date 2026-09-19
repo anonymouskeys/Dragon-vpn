@@ -160,9 +160,13 @@ class CoreVpnService : VpnService(), ServiceControl {
                 ByeDpiManager.Owner.VPN_SERVICE
             )
             if (!byeDpiAcquired) {
-                // Match the working Project-X behavior: DPI is an optional transport layer.
-                // A missing/crashed ciadpi process must not prevent the normal Xray VPN path.
-                LogUtil.w(AppConfig.TAG, "StartCore-VPN: ByeDPI unavailable; using normal Xray path")
+                LogUtil.e(AppConfig.TAG, "StartCore-VPN: Requested ByeDPI runtime is unavailable")
+                MessageUtil.sendMsg2UI(
+                    this, AppConfig.MSG_STATE_START_FAILURE,
+                    getString(com.anonymouskeys.monstervpn.R.string.dpi_start_failed)
+                )
+                stopAllService()
+                return
             }
         }
         if (!CoreServiceManager.startCoreLoop(mInterface)) {
