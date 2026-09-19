@@ -82,7 +82,7 @@ public sealed class DragonRuntime : IDisposable
         var outbounds = new JsonArray(proxy);
         if (settings.ByeDpiEnabled)
         {
-            proxy["proxySettings"] = new JsonObject { ["tag"] = "byedpi-local", ["transportLayer"] = true };
+            ChainThroughOutbound(proxy, "byedpi-local");
             outbounds.Add(new JsonObject
             {
                 ["tag"] = "byedpi-local", ["protocol"] = "socks",
@@ -116,6 +116,16 @@ public sealed class DragonRuntime : IDisposable
                 ["rules"] = BuildRoutingRules(settings)
             }
         };
+    }
+
+    private static void ChainThroughOutbound(JsonObject outbound, string dialerTag)
+    {
+        var stream = outbound["streamSettings"] as JsonObject ?? new JsonObject();
+        outbound["streamSettings"] = stream;
+        var sockopt = stream["sockopt"] as JsonObject ?? new JsonObject();
+        stream["sockopt"] = sockopt;
+        sockopt["dialerProxy"] = dialerTag;
+        outbound.Remove("proxySettings");
     }
 
     private static JsonArray BuildRoutingRules(DragonSettings settings)

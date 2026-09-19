@@ -11,8 +11,8 @@ android {
         applicationId = "com.anonymouskeys.dragonvpn"
         minSdk = 24
         targetSdk = 36
-        versionCode = 742
-        versionName = "2.3.2"
+        versionCode = 743
+        versionName = "2.3.3"
         multiDexEnabled = true
 
         // One universal APK containing every bundled ABI.

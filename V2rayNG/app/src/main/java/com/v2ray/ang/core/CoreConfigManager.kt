@@ -417,8 +417,18 @@ object CoreConfigManager {
                 streamSettings = null, mux = null
             ))
         }
-        candidates.forEach { it.proxySettings = V2rayConfig.OutboundBean.ProxySettingsBean(tag, true) }
+        // Xray removed outbound.proxySettings. Chaining now belongs to the
+        // transport dialer and must be expressed through streamSettings.sockopt.
+        candidates.forEach { outbound ->
+            applyDialerProxy(outbound, tag)
+        }
         LogUtil.i(AppConfig.TAG, "ByeDPI chained to ${candidates.size} TCP outbound(s)")
+    }
+
+    internal fun applyDialerProxy(outbound: V2rayConfig.OutboundBean, tag: String) {
+        outbound.ensureSockopt().dialerProxy = tag
+        // Keep deserialized legacy/custom objects from emitting the removed field.
+        outbound.proxySettings = null
     }
 
     /**

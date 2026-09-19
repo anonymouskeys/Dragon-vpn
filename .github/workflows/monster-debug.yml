@@ -188,10 +188,12 @@ jobs:
         run: |
           set -euo pipefail
           APK="$(find V2rayNG/app/build/outputs/apk/fdroid/release -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' ! -name '*unaligned*' | head -n 1)"
+          APP_VERSION="$(sed -n 's/.*versionName = "\([^" ]*\)".*/\1/p' V2rayNG/app/build.gradle.kts | head -n 1)"
+          test -n "$APP_VERSION"
           mkdir -p release-signed
-          cp "$APK" release-signed/DragonVPN-v2.3.2-universal-signed.apk
+          cp "$APK" "release-signed/DragonVPN-v${APP_VERSION}-universal-signed.apk"
           cp "$RUNNER_TEMP/dragonvpn-signing-certificate.txt" release-signed/DragonVPN-signing-certificate.txt
-          sha256sum release-signed/DragonVPN-v2.3.2-universal-signed.apk > release-signed/DragonVPN-v2.3.2-universal-signed.apk.sha256
+          sha256sum "release-signed/DragonVPN-v${APP_VERSION}-universal-signed.apk" > "release-signed/DragonVPN-v${APP_VERSION}-universal-signed.apk.sha256"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
