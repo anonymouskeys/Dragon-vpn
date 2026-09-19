@@ -43,9 +43,10 @@ object SettingsManager {
     fun initApp(context: Context) {
         migrateOptionalFragmentMaxSplit()
         migrateLegacyVpnMtu()
-        migrateLegacyUdp443Blocking()
+        restoreUdp443TcpFallback()
         migrateLegacyMuxQuicPolicy()
         migrateReliableLocalDns()
+        migrateReliableRemoteDns()
         ensureDefaultSettings()
         //ensureDefaultSubscription()
         initRoutingRulesets(context)
@@ -539,7 +540,7 @@ object SettingsManager {
         ensureDefaultValue(AppConfig.PREF_HEV_TUNNEL_RW_TIMEOUT, AppConfig.HEVTUN_RW_TIMEOUT)
         ensureDefaultValue(AppConfig.PREF_MUX_CONCURRENCY, "8")
         ensureDefaultValue(AppConfig.PREF_MUX_XUDP_CONCURRENCY, "8")
-        ensureDefaultValue(AppConfig.PREF_MUX_XUDP_QUIC, "allow")
+        ensureDefaultValue(AppConfig.PREF_MUX_XUDP_QUIC, "reject")
         ensureDefaultValue(AppConfig.PREF_FRAGMENT_LENGTH, "50-100")
         ensureDefaultValue(AppConfig.PREF_FRAGMENT_INTERVAL, "10-20")
     }
@@ -579,21 +580,29 @@ object SettingsManager {
     }
 
     /**
-     * The inherited v2rayNG routing presets rejected QUIC globally. Modern sites
-     * commonly prefer HTTP/3 and do not always fall back cleanly, which made a
-     * working profile behave worse in Dragon than in clients that pass UDP/443.
+     * Force HTTP/3 clients to retry over TCP. Many WS/TLS proxy servers do not
+     * carry QUIC reliably; allowing UDP/443 then produces endless media spinners
+     * instead of the browser/application's normal TCP fallback.
      */
-    private fun migrateLegacyUdp443Blocking() {
-        val migrationKey = "routing_udp443_passthrough_migrated"
+    private fun restoreUdp443TcpFallback() {
+        val migrationKey = "routing_udp443_tcp_fallback_restored"
         if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
             return
         }
 
         val rules = MmkvManager.decodeRoutingRulesets()
         if (!rules.isNullOrEmpty()) {
-            val filtered = rules.filterNot(::isLegacyUdp443Block).toMutableList()
-            if (filtered.size != rules.size) {
-                MmkvManager.encodeRoutingRulesets(filtered)
+            if (rules.none(::isLegacyUdp443Block)) {
+                rules.add(
+                    0,
+                    RulesetItem(
+                        remarks = "Block udp443",
+                        outboundTag = AppConfig.TAG_BLOCKED,
+                        port = "443",
+                        network = "udp",
+                    )
+                )
+                MmkvManager.encodeRoutingRulesets(rules)
             }
         }
         MmkvManager.encodeSettings(migrationKey, true)
@@ -610,16 +619,16 @@ object SettingsManager {
                 rule.protocol.isNullOrEmpty()
     }
 
-    /** Change only the old generated default; preserve explicit allow/skip choices. */
+    /** Restore the compatibility default changed by the broken QUIC migration. */
     private fun migrateLegacyMuxQuicPolicy() {
-        val migrationKey = "mux_quic_allow_migrated"
+        val migrationKey = "mux_quic_reject_restored"
         if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
             return
         }
 
         val policy = MmkvManager.decodeSettingsString(AppConfig.PREF_MUX_XUDP_QUIC)
-        if (policy.isNullOrEmpty() || policy == "reject") {
-            MmkvManager.encodeSettings(AppConfig.PREF_MUX_XUDP_QUIC, "allow")
+        if (policy.isNullOrEmpty() || policy == "allow") {
+            MmkvManager.encodeSettings(AppConfig.PREF_MUX_XUDP_QUIC, "reject")
         }
         MmkvManager.encodeSettings(migrationKey, true)
     }
@@ -637,6 +646,25 @@ object SettingsManager {
         }
 
         MmkvManager.encodeSettings(AppConfig.PREF_LOCAL_DNS_ENABLED, true)
+        MmkvManager.encodeSettings(migrationKey, true)
+    }
+
+    /**
+     * The previous Dragon default used Cloudflare DoH through the selected
+     * proxy. When a WS transport is degraded, those TCP requests time out and
+     * Android loses all name resolution. Migrate only that generated default
+     * to plain DNS carried by Xray; preserve every user-selected resolver.
+     */
+    private fun migrateReliableRemoteDns() {
+        val migrationKey = "remote_dns_udp_default_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
+            return
+        }
+
+        val current = MmkvManager.decodeSettingsString(AppConfig.PREF_REMOTE_DNS)
+        if (current.isNullOrBlank() || current == "https://cloudflare-dns.com/dns-query") {
+            MmkvManager.encodeSettings(AppConfig.PREF_REMOTE_DNS, AppConfig.DNS_PROXY)
+        }
         MmkvManager.encodeSettings(migrationKey, true)
     }
 

@@ -7,6 +7,12 @@
     ]
   },
   {
+    "remarks": "Block udp443",
+    "outboundTag": "block",
+    "port": "443",
+    "network": "udp"
+  },
+  {
     "remarks": "Direct LAN IP",
     "outboundTag": "direct",
     "ip": [

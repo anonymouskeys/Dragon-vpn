@@ -147,7 +147,10 @@ object AppConfig {
     const val IP_API_URL = "https://api.ip.sb/geoip"
 
     /** DNS server addresses. */
-    const val DNS_PROXY = "https://cloudflare-dns.com/dns-query"
+    // Keep the default resolver transport independent from HTTP/WebSocket.
+    // DoH-over-WS stalls together with the selected proxy and leaves Android
+    // stuck at DNS_PROBE_STARTED even when plain DNS through Xray still works.
+    const val DNS_PROXY = "1.1.1.1"
     const val DNS_DIRECT = "223.5.5.5"
     const val DNS_VPN = "1.1.1.1"
     const val GEOSITE_PRIVATE = "geosite:private"

@@ -278,7 +278,7 @@ object ByeDpiManager {
 
     /**
      * Presets are intentionally composed only from options supported by upstream ciadpi.
-     * "auto" uses a stable WebSocket-safe strategy; Maximum keeps the full cascade.
+     * "auto" uses the same field-proven cascade as Maximum.
      */
     internal fun presetArguments(s: ByeDpiSettings): List<String> {
         val pos = s.splitPosition.ifBlank { "1+s" }
@@ -293,10 +293,9 @@ object ByeDpiManager {
             return args
         }
 
-        // This is the cascade used by the UI's "Maximum" preset. It is kept as
-        // an explicit recovery tool: switching strategies after a reset is too
-        // disruptive for long-lived WebSocket proxy transports to be the
-        // default.
+        // This is the cascade that is proven to work on the target network in
+        // the UI's "Maximum" preset. Auto must not silently substitute a weaker
+        // strategy: most users never open the advanced settings.
         val provenAutoCascade = listOf(
             "--disorder", "1", "--fake", "-1",
             "--auto=torst", "--split", "1+s", "--disorder", "3+s", "--fake", "-1", "--ttl", ttl,
@@ -336,17 +335,7 @@ object ByeDpiManager {
                 "--auto=torst", "--disorder", "1",
             )
 
-            // The stable first strategy from Maximum, without ciadpi's
-            // connection-reset driven strategy switching. A fixed strategy is
-            // important for WebSocket transports: changing groups tears down
-            // the tunnel and produces EOF/closed-pipe reconnect storms.
-            "auto", "auto_balanced" -> listOf(
-                "--disorder", "1", "--fake", "-1",
-            )
-
-            // Maximum intentionally retains the full fallback cascade for
-            // hostile networks where the stable default is insufficient.
-            "auto_aggressive" -> provenAutoCascade
+            "auto", "auto_balanced", "auto_aggressive" -> provenAutoCascade
 
             else -> listOf("--split", pos)
         }

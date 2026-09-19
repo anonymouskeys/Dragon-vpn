@@ -1,5 +1,11 @@
 [
   {
+    "remarks": "阻断udp443",
+    "outboundTag": "block",
+    "port": "443",
+    "network": "udp"
+  },
+  {
     "remarks": "代理Google",
     "outboundTag": "proxy",
     "domain": [
