@@ -1,13 +1,13 @@
 package com.v2ray.ang.dpi
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ByeDpiManagerTest {
 
     @Test
-    fun defaultAutoPresetUsesAndroidCompatibleDisorder() {
+    fun defaultAutoPresetUsesProvenMaximumCascade() {
         val settings = ByeDpiSettings(
             enabled = true,
             strategy = "auto",
@@ -21,21 +21,15 @@ class ByeDpiManagerTest {
 
         val args = ByeDpiManager.presetArguments(settings)
 
-        assertEquals(
-            listOf(
-                "--auto=torst",
-                "--proto", "http,tls",
-                "--pf", "80-443",
-                "--disorder", "1",
-            ),
-            args,
-        )
-        assertFalse(args.contains("3+s"))
+        assertEquals(listOf("--disorder", "1", "--fake", "-1"), args.take(4))
+        assertTrue(args.contains("--auto=torst"))
+        assertTrue(args.contains("--auto=ssl_err"))
+        assertTrue(args.contains("--fake-tls-mod"))
     }
 
     @Test
-    fun defaultAutoPresetDoesNotRestrictPortsWhenDisabled() {
-        val settings = ByeDpiSettings(
+    fun defaultAutoPresetExactlyMatchesMaximumPreset() {
+        val automatic = ByeDpiSettings(
             enabled = true,
             strategy = "auto_balanced",
             splitPosition = "1+s",
@@ -46,10 +40,11 @@ class ByeDpiManagerTest {
             expertArgs = "",
         )
 
-        val args = ByeDpiManager.presetArguments(settings)
+        val maximum = automatic.copy(strategy = "auto_aggressive")
 
-        assertFalse(args.contains("--pf"))
-        assertEquals("--auto=torst", args.first())
-        assertEquals(listOf("--disorder", "1"), args.takeLast(2))
+        assertEquals(
+            ByeDpiManager.presetArguments(maximum),
+            ByeDpiManager.presetArguments(automatic),
+        )
     }
 }

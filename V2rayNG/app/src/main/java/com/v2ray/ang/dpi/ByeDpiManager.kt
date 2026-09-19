@@ -278,7 +278,7 @@ object ByeDpiManager {
 
     /**
      * Presets are intentionally composed only from options supported by upstream ciadpi.
-     * "auto" remains the safe Android/Linux default.
+     * "auto" follows the same field-proven cascade as the Maximum preset.
      */
     internal fun presetArguments(s: ByeDpiSettings): List<String> {
         val pos = s.splitPosition.ifBlank { "1+s" }
@@ -292,6 +292,19 @@ object ByeDpiManager {
             }
             return args
         }
+
+        // This is the cascade used by the UI's "Maximum" preset. Keep the
+        // default automatic modes on the same proven cascade: most users never
+        // change the preset, and a weaker direct/disorder-only chain leaves
+        // them without DPI bypass on networks that require fake packets.
+        val provenAutoCascade = listOf(
+            "--disorder", "1", "--fake", "-1",
+            "--auto=torst", "--split", "1+s", "--disorder", "3+s", "--fake", "-1", "--ttl", ttl,
+            "--auto=ssl_err", "--fake", "-1", "--ttl", ttl, "--fake-tls-mod", "rand",
+            "--auto=torst", "--tlsrec", "3+s", "--disorder", "1",
+            "--auto=torst", "--disoob", "3+s", "--disorder", "1",
+            "--auto=torst", "--split", "1+s", "--split", "3+s", "--disorder", "5+s",
+        )
 
         return when (s.strategy) {
             // Simple/compatible modes.
@@ -323,26 +336,15 @@ object ByeDpiManager {
                 "--auto=torst", "--disorder", "1",
             )
 
-            // Start without modifying the proxy-server handshake. Only after a
-            // reset/timeout does ciadpi reconnect with the Linux-compatible
-            // disorder strategy. Scope arguments must be repeated because
-            // --auto starts a new upstream strategy group.
-            "auto", "auto_balanced" -> buildList {
-                add("--auto=torst")
-                addAll(listOf("--proto", "http,tls"))
-                if (s.ports80And443Only) addAll(listOf("--pf", "80-443"))
-                addAll(listOf("--disorder", "1"))
-            }
+            // Auto must be useful without asking the user to discover and
+            // select Maximum manually. The previous direct-first fallback was
+            // reproducibly ineffective while this cascade works on the same
+            // device/network/configuration.
+            "auto", "auto_balanced" -> provenAutoCascade
 
-            // Stronger chain for networks that reset several normal desync variants.
-            "auto_aggressive" -> listOf(
-                "--disorder", "1", "--fake", "-1",
-                "--auto=torst", "--split", "1+s", "--disorder", "3+s", "--fake", "-1", "--ttl", ttl,
-                "--auto=ssl_err", "--fake", "-1", "--ttl", ttl, "--fake-tls-mod", "rand",
-                "--auto=torst", "--tlsrec", "3+s", "--disorder", "1",
-                "--auto=torst", "--disoob", "3+s", "--disorder", "1",
-                "--auto=torst", "--split", "1+s", "--split", "3+s", "--disorder", "5+s",
-            )
+            // Explicit Maximum and default Auto intentionally share one
+            // implementation so they cannot silently drift apart again.
+            "auto_aggressive" -> provenAutoCascade
 
             else -> listOf("--split", pos)
         }
