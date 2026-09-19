@@ -147,11 +147,12 @@ object AppConfig {
     const val IP_API_URL = "https://api.ip.sb/geoip"
 
     /** DNS server addresses. */
-    // Keep the default resolver transport independent from HTTP/WebSocket.
-    // DoH-over-WS stalls together with the selected proxy and leaves Android
-    // stuck at DNS_PROBE_STARTED even when plain DNS through Xray still works.
-    const val DNS_PROXY = "1.1.1.1"
-    const val DNS_DIRECT = "223.5.5.5"
+    // Carry DNS over TCP inside the selected proxy. Raw UDP/53 is commonly
+    // filtered by mobile networks and is not supported by many WS/TLS proxies.
+    const val DNS_PROXY = "tcp://1.1.1.1"
+    // Direct/rule-bypassed domains still need an encrypted resolver on port 443;
+    // otherwise regional mobile networks can drop their UDP/53 replies as well.
+    const val DNS_DIRECT = "https://1.1.1.1/dns-query"
     const val DNS_VPN = "1.1.1.1"
     const val GEOSITE_PRIVATE = "geosite:private"
     const val GEOSITE_CN = "geosite:cn"

@@ -47,6 +47,8 @@ object SettingsManager {
         migrateLegacyMuxQuicPolicy()
         migrateReliableLocalDns()
         migrateReliableRemoteDns()
+        migrateReliableTcpRemoteDns()
+        migrateReliableDirectDns()
         ensureDefaultSettings()
         //ensureDefaultSubscription()
         initRoutingRulesets(context)
@@ -664,6 +666,34 @@ object SettingsManager {
         val current = MmkvManager.decodeSettingsString(AppConfig.PREF_REMOTE_DNS)
         if (current.isNullOrBlank() || current == "https://cloudflare-dns.com/dns-query") {
             MmkvManager.encodeSettings(AppConfig.PREF_REMOTE_DNS, AppConfig.DNS_PROXY)
+        }
+        MmkvManager.encodeSettings(migrationKey, true)
+    }
+
+    /**
+     * Raw UDP/53 may be accepted by Xray while every reply is silently dropped by the
+     * mobile network. Move only Dragon's generated 1.1.1.1 default to DNS-over-TCP;
+     * explicit user-selected resolvers remain untouched.
+     */
+    private fun migrateReliableTcpRemoteDns() {
+        val migrationKey = "remote_dns_tcp_default_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) return
+
+        val current = MmkvManager.decodeSettingsString(AppConfig.PREF_REMOTE_DNS)
+        if (current.isNullOrBlank() || current == "1.1.1.1") {
+            MmkvManager.encodeSettings(AppConfig.PREF_REMOTE_DNS, AppConfig.DNS_PROXY)
+        }
+        MmkvManager.encodeSettings(migrationKey, true)
+    }
+
+    /** Replace Dragon's generated regional UDP resolver with direct DoH on port 443. */
+    private fun migrateReliableDirectDns() {
+        val migrationKey = "direct_dns_doh_default_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) return
+
+        val current = MmkvManager.decodeSettingsString(AppConfig.PREF_DOMESTIC_DNS)
+        if (current.isNullOrBlank() || current == "223.5.5.5") {
+            MmkvManager.encodeSettings(AppConfig.PREF_DOMESTIC_DNS, AppConfig.DNS_DIRECT)
         }
         MmkvManager.encodeSettings(migrationKey, true)
     }

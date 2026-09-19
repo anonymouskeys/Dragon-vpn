@@ -278,7 +278,8 @@ object ByeDpiManager {
 
     /**
      * Presets are intentionally composed only from options supported by upstream ciadpi.
-     * "auto" uses the same field-proven cascade as Maximum.
+     * "auto" starts with the Linux/Android-safe disorder strategy and escalates only after
+     * ciadpi observes a reset/timeout. Maximum remains an explicit recovery preset.
      */
     internal fun presetArguments(s: ByeDpiSettings): List<String> {
         val pos = s.splitPosition.ifBlank { "1+s" }
@@ -293,10 +294,18 @@ object ByeDpiManager {
             return args
         }
 
-        // This is the cascade that is proven to work on the target network in
-        // the UI's "Maximum" preset. Auto must not silently substitute a weaker
-        // strategy: most users never open the advanced settings.
-        val provenAutoCascade = listOf(
+        // Android uses the Linux TCP stack. Upstream ByeDPI recommends disorder(1)
+        // there; fake+disorder is the Windows recommendation and can deliver fake
+        // bytes to the real server on Android, corrupting TLS/WebSocket tunnels.
+        // TLS-record splitting is enabled only after a reset/timeout, as recommended
+        // by upstream, so ordinary proxy connections remain untouched and stable.
+        val androidAutoCascade = listOf(
+            "--disorder", "1",
+            "--auto=torst", "--tlsrec", "1+s",
+            "--auto=ssl_err", "--tlsrec", "3+s",
+        )
+
+        val maximumCascade = listOf(
             "--disorder", "1", "--fake", "-1",
             "--auto=torst", "--split", "1+s", "--disorder", "3+s", "--fake", "-1", "--ttl", ttl,
             "--auto=ssl_err", "--fake", "-1", "--ttl", ttl, "--fake-tls-mod", "rand",
@@ -335,7 +344,8 @@ object ByeDpiManager {
                 "--auto=torst", "--disorder", "1",
             )
 
-            "auto", "auto_balanced", "auto_aggressive" -> provenAutoCascade
+            "auto", "auto_balanced" -> androidAutoCascade
+            "auto_aggressive" -> maximumCascade
 
             else -> listOf("--split", pos)
         }
