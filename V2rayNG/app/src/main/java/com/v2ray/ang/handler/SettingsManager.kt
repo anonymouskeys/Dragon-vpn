@@ -43,6 +43,8 @@ object SettingsManager {
     fun initApp(context: Context) {
         migrateOptionalFragmentMaxSplit()
         migrateLegacyVpnMtu()
+        migrateLegacyUdp443Blocking()
+        migrateLegacyMuxQuicPolicy()
         ensureDefaultSettings()
         //ensureDefaultSubscription()
         initRoutingRulesets(context)
@@ -536,6 +538,7 @@ object SettingsManager {
         ensureDefaultValue(AppConfig.PREF_HEV_TUNNEL_RW_TIMEOUT, AppConfig.HEVTUN_RW_TIMEOUT)
         ensureDefaultValue(AppConfig.PREF_MUX_CONCURRENCY, "8")
         ensureDefaultValue(AppConfig.PREF_MUX_XUDP_CONCURRENCY, "8")
+        ensureDefaultValue(AppConfig.PREF_MUX_XUDP_QUIC, "allow")
         ensureDefaultValue(AppConfig.PREF_FRAGMENT_LENGTH, "50-100")
         ensureDefaultValue(AppConfig.PREF_FRAGMENT_INTERVAL, "10-20")
     }
@@ -570,6 +573,52 @@ object SettingsManager {
 
         if (MmkvManager.decodeSettingsString(AppConfig.PREF_VPN_MTU) == "1500") {
             MmkvManager.encodeSettings(AppConfig.PREF_VPN_MTU, AppConfig.VPN_MTU.toString())
+        }
+        MmkvManager.encodeSettings(migrationKey, true)
+    }
+
+    /**
+     * The inherited v2rayNG routing presets rejected QUIC globally. Modern sites
+     * commonly prefer HTTP/3 and do not always fall back cleanly, which made a
+     * working profile behave worse in Dragon than in clients that pass UDP/443.
+     */
+    private fun migrateLegacyUdp443Blocking() {
+        val migrationKey = "routing_udp443_passthrough_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
+            return
+        }
+
+        val rules = MmkvManager.decodeRoutingRulesets()
+        if (!rules.isNullOrEmpty()) {
+            val filtered = rules.filterNot(::isLegacyUdp443Block).toMutableList()
+            if (filtered.size != rules.size) {
+                MmkvManager.encodeRoutingRulesets(filtered)
+            }
+        }
+        MmkvManager.encodeSettings(migrationKey, true)
+    }
+
+    internal fun isLegacyUdp443Block(rule: RulesetItem): Boolean {
+        return (rule.remarks == "阻断udp443" || rule.remarks == "Block udp443") &&
+                rule.outboundTag == AppConfig.TAG_BLOCKED &&
+                rule.port == "443" &&
+                rule.network == "udp" &&
+                rule.ip.isNullOrEmpty() &&
+                rule.domain.isNullOrEmpty() &&
+                rule.process.isNullOrEmpty() &&
+                rule.protocol.isNullOrEmpty()
+    }
+
+    /** Change only the old generated default; preserve explicit allow/skip choices. */
+    private fun migrateLegacyMuxQuicPolicy() {
+        val migrationKey = "mux_quic_allow_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
+            return
+        }
+
+        val policy = MmkvManager.decodeSettingsString(AppConfig.PREF_MUX_XUDP_QUIC)
+        if (policy.isNullOrEmpty() || policy == "reject") {
+            MmkvManager.encodeSettings(AppConfig.PREF_MUX_XUDP_QUIC, "allow")
         }
         MmkvManager.encodeSettings(migrationKey, true)
     }

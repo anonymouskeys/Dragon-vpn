@@ -258,7 +258,7 @@
             android:title="@string/title_pref_mux_xudp_concurency" />
 
         <ListPreference
-            android:defaultValue="reject"
+            android:defaultValue="allow"
             android:entries="@array/mux_xudp_quic_entries"
             android:entryValues="@array/mux_xudp_quic_value"
             android:key="pref_mux_xudp_quic"
