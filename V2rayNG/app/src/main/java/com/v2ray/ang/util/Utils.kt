@@ -161,40 +161,58 @@ object Utils {
      * @return True if the string is a valid IP address, false otherwise.
      */
     fun isIpAddress(value: String?): Boolean {
-        if (value.isNullOrEmpty()) return false
+        return parseIpLiteral(value) != null
+    }
 
-        try {
-            var addr = value.trim()
-            if (addr.isEmpty()) return false
+    /**
+     * Parse an IPv4/IPv6 literal without Android framework helpers. This also
+     * accepts the forms used by profile links: IPv4 with port, bracketed IPv6
+     * with port, and an optional CIDR prefix.
+     */
+    private fun parseIpLiteral(value: String?): Pair<String, Int?>? {
+        var input = value?.trim().orEmpty()
+        if (input.isEmpty()) return null
 
-            //CIDR
-            if (addr.contains("/")) {
-                val arr = addr.split("/")
-                if (arr.size == 2 && arr[1].toIntOrNull() != null && arr[1].toInt() > -1) {
-                    addr = arr[0]
-                }
-            }
-
-            // Handle IPv4-mapped IPv6 addresses
-            if (addr.startsWith("::ffff:") && '.' in addr) {
-                addr = addr.drop(7)
-            } else if (addr.startsWith("[::ffff:") && '.' in addr) {
-                addr = addr.drop(8).replace("]", "")
-            }
-
-            val octets = addr.split('.')
-            if (octets.size == 4) {
-                if (octets[3].contains(":")) {
-                    addr = addr.substring(0, addr.indexOf(":"))
-                }
-                return isIpv4Address(addr)
-            }
-
-            return isIpv6Address(addr)
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "Failed to validate IP address", e)
-            return false
+        var prefixLength: Int? = null
+        if ('/' in input) {
+            val parts = input.split('/')
+            if (parts.size != 2) return null
+            prefixLength = parts[1].toIntOrNull() ?: return null
+            input = parts[0]
         }
+
+        val address = when {
+            input.startsWith('[') -> {
+                val closingBracket = input.indexOf(']')
+                if (closingBracket <= 1) return null
+                val suffix = input.substring(closingBracket + 1)
+                if (suffix.isNotEmpty()) {
+                    val port = suffix.takeIf { it.startsWith(':') }
+                        ?.drop(1)
+                        ?.toIntOrNull()
+                    if (port == null || port !in 0..65535) return null
+                }
+                input.substring(1, closingBracket)
+            }
+            input.count { it == ':' } == 1 && '.' in input -> {
+                val port = input.substringAfterLast(':').toIntOrNull() ?: return null
+                if (port !in 0..65535) return null
+                input.substringBeforeLast(':')
+            }
+            else -> input
+        }
+
+        val mappedIpv4 = address
+            .takeIf { it.startsWith("::ffff:", ignoreCase = true) && '.' in it }
+            ?.substringAfterLast(':')
+        val isMappedIpv6 = mappedIpv4 != null && isIpv4Address(mappedIpv4)
+        val isIpv4 = mappedIpv4 == null && isIpv4Address(address)
+        val isIpv6 = isMappedIpv6 || isIpv6Address(address)
+        if (!isIpv4 && !isIpv6) return null
+
+        val maxPrefix = if (isIpv6) 128 else 32
+        if (prefixLength != null && prefixLength !in 0..maxPrefix) return null
+        return address to prefixLength
     }
 
     /**
@@ -555,21 +573,6 @@ object Utils {
     fun isGoogleFlavor(): Boolean = BuildConfig.FLAVOR == "playstore"
 
     /**
-     * Converts an InetAddress to its long representation
-     *
-     * @param ip The InetAddress to convert
-     * @return The long representation of the IP address
-     */
-    private fun inetAddressToLong(ip: InetAddress): Long {
-        val bytes = ip.address
-        var result: Long = 0
-        for (i in bytes.indices) {
-            result = result shl 8 or (bytes[i].toInt() and 0xff).toLong()
-        }
-        return result
-    }
-
-    /**
      * Check if an IP address is within a CIDR range
      *
      * @param ip The IP address to check
@@ -577,25 +580,32 @@ object Utils {
      * @return True if the IP is within the CIDR range, false otherwise
      */
     fun isIpInCidr(ip: String, cidr: String): Boolean {
-        try {
-            if (!isIpAddress(ip)) return false
+        val (ipLiteral, ipPrefix) = parseIpLiteral(ip) ?: return false
+        if (ipPrefix != null) return false
+        val (networkLiteral, prefixLength) = parseIpLiteral(cidr) ?: return false
+        prefixLength ?: return false
 
-            // Parse CIDR (e.g., "192.168.1.0/24")
-            val (cidrIp, prefixLen) = cidr.split("/")
-            val prefixLength = prefixLen.toInt()
+        return try {
+            val addressBytes = InetAddress.getByName(ipLiteral).address
+            val networkBytes = InetAddress.getByName(networkLiteral).address
+            if (addressBytes.size != networkBytes.size || prefixLength > addressBytes.size * 8) {
+                return false
+            }
 
-            // Convert IP and CIDR's IP portion to Long
-            val ipLong = inetAddressToLong(InetAddress.getByName(ip))
-            val cidrIpLong = inetAddressToLong(InetAddress.getByName(cidrIp))
-
-            // Calculate subnet mask (e.g., /24 → 0xFFFFFF00)
-            val mask = if (prefixLength == 0) 0L else (-1L shl (32 - prefixLength))
-
-            // Check if they're in the same subnet
-            return (ipLong and mask) == (cidrIpLong and mask)
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "Failed to check if IP is in CIDR", e)
-            return false
+            val completeBytes = prefixLength / 8
+            val remainingBits = prefixLength % 8
+            for (index in 0 until completeBytes) {
+                if (addressBytes[index] != networkBytes[index]) return false
+            }
+            if (remainingBits > 0) {
+                val mask = (0xff shl (8 - remainingBits)) and 0xff
+                if ((addressBytes[completeBytes].toInt() and mask) !=
+                    (networkBytes[completeBytes].toInt() and mask)
+                ) return false
+            }
+            true
+        } catch (_: Exception) {
+            false
         }
     }
 
