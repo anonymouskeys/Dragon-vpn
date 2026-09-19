@@ -153,7 +153,7 @@ object AppConfig {
     // Direct/rule-bypassed domains still need an encrypted resolver on port 443;
     // otherwise regional mobile networks can drop their UDP/53 replies as well.
     const val DNS_DIRECT = "https://1.1.1.1/dns-query"
-    const val DNS_VPN = "1.1.1.1"
+    const val DNS_VPN = "8.8.8.8"
     const val GEOSITE_PRIVATE = "geosite:private"
     const val GEOSITE_CN = "geosite:cn"
     const val GEOIP_PRIVATE = "geoip:private"

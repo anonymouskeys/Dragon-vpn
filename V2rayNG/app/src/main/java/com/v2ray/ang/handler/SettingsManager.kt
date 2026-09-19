@@ -45,7 +45,7 @@ object SettingsManager {
         migrateLegacyVpnMtu()
         restoreUdp443TcpFallback()
         migrateLegacyMuxQuicPolicy()
-        migrateReliableLocalDns()
+        migrateVpnDnsDefaults()
         migrateReliableRemoteDns()
         migrateReliableTcpRemoteDns()
         migrateReliableDirectDns()
@@ -529,11 +529,9 @@ object SettingsManager {
         ensureDefaultValue(AppConfig.PREF_MODE, VPN)
         ensureDefaultValue(AppConfig.PREF_VPN_DNS, AppConfig.DNS_VPN)
         ensureDefaultValue(AppConfig.PREF_VPN_MTU, AppConfig.VPN_MTU.toString())
-        // Resolve device DNS inside Xray and forward it over the selected
-        // proxy. Raw UDP/53 is unreliable on many WS/TLS servers and was the
-        // main reason that an otherwise valid profile appeared slow or unable
-        // to open YouTube and Speedtest.
-        ensureDefaultBoolean(AppConfig.PREF_LOCAL_DNS_ENABLED, true)
+        // Match the DNS path verified on-device with the affected VLESS profile.
+        ensureDefaultBoolean(AppConfig.PREF_LOCAL_DNS_ENABLED, false)
+        ensureDefaultBoolean(AppConfig.PREF_FAKE_DNS_ENABLED, false)
         ensureDefaultValue(AppConfig.PREF_SOCKS_PORT, AppConfig.PORT_SOCKS)
         ensureDefaultValue(AppConfig.PREF_REMOTE_DNS, AppConfig.DNS_PROXY)
         ensureDefaultValue(AppConfig.PREF_DOMESTIC_DNS, AppConfig.DNS_DIRECT)
@@ -636,18 +634,23 @@ object SettingsManager {
     }
 
     /**
-     * Older installations could retain local DNS as disabled. That sends raw
-     * UDP/53 through the selected proxy, which fails for many otherwise valid
-     * WS/TLS profiles. Enable Xray DNS interception once during the upgrade;
-     * the user can still change the setting afterwards.
+     * Replace the previous generated VPN DNS setup once on upgrade. Preserve
+     * custom resolvers and allow subsequent manual changes without resetting
+     * them on every launch. The old migration that forced local DNS on is no
+     * longer run.
      */
-    private fun migrateReliableLocalDns() {
-        val migrationKey = "reliable_local_dns_migrated"
+    private fun migrateVpnDnsDefaults() {
+        val migrationKey = "vpn_dns_passthrough_defaults_migrated"
         if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
             return
         }
 
-        MmkvManager.encodeSettings(AppConfig.PREF_LOCAL_DNS_ENABLED, true)
+        val vpnDns = MmkvManager.decodeSettingsString(AppConfig.PREF_VPN_DNS)?.trim()
+        if (vpnDns.isNullOrEmpty() || vpnDns == "1.1.1.1") {
+            MmkvManager.encodeSettings(AppConfig.PREF_VPN_DNS, AppConfig.DNS_VPN)
+            MmkvManager.encodeSettings(AppConfig.PREF_LOCAL_DNS_ENABLED, false)
+            MmkvManager.encodeSettings(AppConfig.PREF_FAKE_DNS_ENABLED, false)
+        }
         MmkvManager.encodeSettings(migrationKey, true)
     }
 
