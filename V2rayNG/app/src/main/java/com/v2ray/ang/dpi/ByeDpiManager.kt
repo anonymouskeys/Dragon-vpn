@@ -275,9 +275,9 @@ object ByeDpiManager {
 
     /**
      * Presets are intentionally composed only from options supported by upstream ciadpi.
-     * "auto" remains the safe default and now uses several fallback groups.
+     * "auto" remains the safe Android/Linux default.
      */
-    private fun presetArguments(s: ByeDpiSettings): List<String> {
+    internal fun presetArguments(s: ByeDpiSettings): List<String> {
         val pos = s.splitPosition.ifBlank { "1+s" }
         val ttl = s.fakeTtl.toString()
 
@@ -320,15 +320,13 @@ object ByeDpiManager {
                 "--auto=torst", "--disorder", "1",
             )
 
-            // Balanced default. Groups are cached by ciadpi per destination.
-            "auto", "auto_balanced" -> listOf(
-                "--split", "1+s", "--disorder", "3+s",
-                "--auto=torst", "--disorder", "1", "--fake", "-1",
-                "--auto=ssl_err", "--fake", "-1", "--ttl", ttl, "--fake-tls-mod", "rand",
-                "--auto=torst", "--tlsrec", "3+s",
-                "--auto=torst", "--oob", "3+s", "--oob-data", "a",
-                "--auto=torst", "--split", "0+sm",
-            )
+            // Android uses the Linux TCP stack. Upstream ByeDPI explicitly recommends
+            // `--disorder 1` on Linux, while `--split 1+s --disorder 3+s` is the Windows
+            // recommendation. Using the Windows sequence here made ciadpi corrupt every
+            // proxy-server TLS handshake (EOF/closed pipe) before Xray could connect.
+            // Keep the default deterministic; users can still select the stronger presets
+            // explicitly when their network requires them.
+            "auto", "auto_balanced" -> listOf("--disorder", "1")
 
             // Stronger chain for networks that reset several normal desync variants.
             "auto_aggressive" -> listOf(

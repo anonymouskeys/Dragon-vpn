@@ -108,6 +108,14 @@ jobs:
           echo "Downloaded libv2ray.aar:"
           ls -lh V2rayNG/app/libs/libv2ray.aar
 
+      - name: Run Android unit tests
+        working-directory: V2rayNG
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace testFdroidDebugUnitTest
+
       - name: Validate release signing secrets
         shell: bash
         env:
