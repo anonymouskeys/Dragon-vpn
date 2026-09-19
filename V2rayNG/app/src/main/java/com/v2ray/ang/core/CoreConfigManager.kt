@@ -169,7 +169,7 @@ object CoreConfigManager {
         // User routing rules (policyGroupBalancerTags rewrites TAG_PROXY→balancer when main is POLICYGROUP).
         configureRouting(configContext, v2rayConfig, policyGroupBalancerTags)
         configureFakeDns(v2rayConfig)
-        configureDns(configContext, v2rayConfig, policyGroupBalancerTags)
+        configureDns(configContext, v2rayConfig)
         configureLocalDns(configContext, v2rayConfig)
         configureRootModeDns(v2rayConfig)
 
@@ -863,7 +863,6 @@ object CoreConfigManager {
     private fun configureDns(
         configContext: CoreConfigContext,
         v2rayConfig: V2rayConfig,
-        policyGroupBalancerTags: Map<String, String>,
     ) {
         val servers = ArrayList<Any>()
         val remoteDns = SettingsManager.getRemoteDnsServers()
@@ -898,24 +897,20 @@ object CoreConfigManager {
             )
         }
 
-        val dnsProxyBalancerTag = policyGroupBalancerTags[AppConfig.TAG_PROXY]
-        if (dnsProxyBalancerTag != null) {
-            v2rayConfig.routing.rules.add(
-                V2rayConfig.RoutingBean.RulesBean(
-                    balancerTag = dnsProxyBalancerTag,
-                    inboundTag = arrayListOf(AppConfig.TAG_DNS),
-                    domain = null
-                )
+        // Resolve names outside the selected proxy transport. Many otherwise
+        // valid WS/TLS profiles do not carry UDP, so routing DNS through the
+        // proxy accepts every query but never returns a response. Xray belongs
+        // to the VPN application's excluded UID, therefore TAG_DIRECT uses the
+        // underlying Android network without entering the TUN again. Only DNS
+        // leaves directly; application traffic still follows the selected
+        // proxy/balancer and ByeDPI chain.
+        v2rayConfig.routing.rules.add(
+            V2rayConfig.RoutingBean.RulesBean(
+                outboundTag = AppConfig.TAG_DIRECT,
+                inboundTag = arrayListOf(AppConfig.TAG_DNS),
+                domain = null
             )
-        } else {
-            v2rayConfig.routing.rules.add(
-                V2rayConfig.RoutingBean.RulesBean(
-                    outboundTag = AppConfig.TAG_PROXY,
-                    inboundTag = arrayListOf(AppConfig.TAG_DNS),
-                    domain = null
-                )
-            )
-        }
+        )
     }
 
     private fun buildDnsHostsFromRoutingRules(configContext: CoreConfigContext): MutableMap<String, Any> {
