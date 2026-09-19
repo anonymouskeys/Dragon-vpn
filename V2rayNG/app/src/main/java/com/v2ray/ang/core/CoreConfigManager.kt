@@ -644,24 +644,18 @@ object CoreConfigManager {
         }
 
         if (SettingsManager.isVpnMode()) {
-            if (SettingsManager.isUsingHevTun()) {
-                //hev-socks5-tunnel dns routing
-                v2rayConfig.routing.rules.add(
-                    0, V2rayConfig.RoutingBean.RulesBean(
-                        inboundTag = arrayListOf("socks"),
-                        outboundTag = "dns-out",
-                        port = "53",
-                    )
+            // Accept DNS from either VPN implementation. Some Android/device
+            // combinations still deliver tunneled queries to the SOCKS inbound
+            // while the saved implementation flag points at Xray TUN (or vice
+            // versa). Missing that query sends raw UDP/53 through the proxy and
+            // causes DNS_PROBE_STARTED / DNS_PROBE_FINISHED_BAD_CONFIG.
+            v2rayConfig.routing.rules.add(
+                0, V2rayConfig.RoutingBean.RulesBean(
+                    inboundTag = arrayListOf("socks", "tun"),
+                    outboundTag = "dns-out",
+                    port = "53",
                 )
-            } else {
-                v2rayConfig.routing.rules.add(
-                    0, V2rayConfig.RoutingBean.RulesBean(
-                        inboundTag = arrayListOf("tun"),
-                        outboundTag = "dns-out",
-                        port = "53",
-                    )
-                )
-            }
+            )
         }
 
         // DNS outbound

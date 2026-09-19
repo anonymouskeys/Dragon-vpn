@@ -45,6 +45,7 @@ object SettingsManager {
         migrateLegacyVpnMtu()
         migrateLegacyUdp443Blocking()
         migrateLegacyMuxQuicPolicy()
+        migrateReliableLocalDns()
         ensureDefaultSettings()
         //ensureDefaultSubscription()
         initRoutingRulesets(context)
@@ -620,6 +621,22 @@ object SettingsManager {
         if (policy.isNullOrEmpty() || policy == "reject") {
             MmkvManager.encodeSettings(AppConfig.PREF_MUX_XUDP_QUIC, "allow")
         }
+        MmkvManager.encodeSettings(migrationKey, true)
+    }
+
+    /**
+     * Older installations could retain local DNS as disabled. That sends raw
+     * UDP/53 through the selected proxy, which fails for many otherwise valid
+     * WS/TLS profiles. Enable Xray DNS interception once during the upgrade;
+     * the user can still change the setting afterwards.
+     */
+    private fun migrateReliableLocalDns() {
+        val migrationKey = "reliable_local_dns_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
+            return
+        }
+
+        MmkvManager.encodeSettings(AppConfig.PREF_LOCAL_DNS_ENABLED, true)
         MmkvManager.encodeSettings(migrationKey, true)
     }
 
