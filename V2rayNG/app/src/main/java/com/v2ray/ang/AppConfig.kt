@@ -212,7 +212,11 @@ object AppConfig {
 
     /** Give a good name to this, IDK*/
     const val VPN = "VPN"
-    const val VPN_MTU = 1500
+    // A full 1500-byte TUN packet grows after proxy/TLS encapsulation and is
+    // frequently black-holed on mobile networks where PMTU discovery is
+    // filtered. 1420 matches the existing WireGuard default and leaves enough
+    // headroom for every supported Xray transport.
+    const val VPN_MTU = 1420
 
     /** Root (system-wide) mode runtime constants. */
     const val ROOT_RUNTIME_DIR = "root"

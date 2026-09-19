@@ -698,6 +698,14 @@ object MmkvManager {
     }
 
     /**
+     * Returns whether a preference has an explicitly stored value, regardless
+     * of its MMKV type.
+     */
+    fun containsSetting(key: String): Boolean {
+        return settingsStorage.containsKey(key)
+    }
+
+    /**
      * Decodes the settings string.
      *
      * @param key The settings key.

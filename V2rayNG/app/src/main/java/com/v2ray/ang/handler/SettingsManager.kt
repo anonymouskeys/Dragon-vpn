@@ -42,6 +42,7 @@ object SettingsManager {
 
     fun initApp(context: Context) {
         migrateOptionalFragmentMaxSplit()
+        migrateLegacyVpnMtu()
         ensureDefaultSettings()
         //ensureDefaultSubscription()
         initRoutingRulesets(context)
@@ -522,6 +523,11 @@ object SettingsManager {
         ensureDefaultValue(AppConfig.PREF_MODE, VPN)
         ensureDefaultValue(AppConfig.PREF_VPN_DNS, AppConfig.DNS_VPN)
         ensureDefaultValue(AppConfig.PREF_VPN_MTU, AppConfig.VPN_MTU.toString())
+        // Resolve device DNS inside Xray and forward it over the selected
+        // proxy. Raw UDP/53 is unreliable on many WS/TLS servers and was the
+        // main reason that an otherwise valid profile appeared slow or unable
+        // to open YouTube and Speedtest.
+        ensureDefaultBoolean(AppConfig.PREF_LOCAL_DNS_ENABLED, true)
         ensureDefaultValue(AppConfig.PREF_SOCKS_PORT, AppConfig.PORT_SOCKS)
         ensureDefaultValue(AppConfig.PREF_REMOTE_DNS, AppConfig.DNS_PROXY)
         ensureDefaultValue(AppConfig.PREF_DOMESTIC_DNS, AppConfig.DNS_DIRECT)
@@ -550,8 +556,32 @@ object SettingsManager {
         MmkvManager.encodeSettings(migrationKey, true)
     }
 
+    /**
+     * DragonVPN used to persist 1500 as an implicit VPN default. Encapsulation
+     * can make those packets larger than the path MTU, while a blocked ICMP
+     * response prevents Android from recovering. Migrate that generated value
+     * once, but preserve every non-default value selected by the user.
+     */
+    private fun migrateLegacyVpnMtu() {
+        val migrationKey = "vpn_mtu_1420_migrated"
+        if (MmkvManager.decodeSettingsBool(migrationKey, false)) {
+            return
+        }
+
+        if (MmkvManager.decodeSettingsString(AppConfig.PREF_VPN_MTU) == "1500") {
+            MmkvManager.encodeSettings(AppConfig.PREF_VPN_MTU, AppConfig.VPN_MTU.toString())
+        }
+        MmkvManager.encodeSettings(migrationKey, true)
+    }
+
     private fun ensureDefaultValue(key: String, default: String) {
         if (MmkvManager.decodeSettingsString(key).isNullOrEmpty()) {
+            MmkvManager.encodeSettings(key, default)
+        }
+    }
+
+    private fun ensureDefaultBoolean(key: String, default: Boolean) {
+        if (!MmkvManager.containsSetting(key)) {
             MmkvManager.encodeSettings(key, default)
         }
     }
