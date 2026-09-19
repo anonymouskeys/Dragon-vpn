@@ -88,7 +88,10 @@ object ByeDpiManager {
             "--max-conn", "1024",
             "--timeout", "3",
             "--cache-ttl", "86400",
-            "--auto-mode", "3",
+            // Cache a working fallback after a reset/timeout, but do not sort
+            // strategy groups globally. Sorting made one bad result affect
+            // unrelated proxy servers during a large batch test.
+            "--auto-mode", "1",
             "--proto", "http,tls",
         )
         if (settings.ports80And443Only) command += listOf("--pf", "80-443")
@@ -320,13 +323,16 @@ object ByeDpiManager {
                 "--auto=torst", "--disorder", "1",
             )
 
-            // Android uses the Linux TCP stack. Upstream ByeDPI explicitly recommends
-            // `--disorder 1` on Linux, while `--split 1+s --disorder 3+s` is the Windows
-            // recommendation. Using the Windows sequence here made ciadpi corrupt every
-            // proxy-server TLS handshake (EOF/closed pipe) before Xray could connect.
-            // Keep the default deterministic; users can still select the stronger presets
-            // explicitly when their network requires them.
-            "auto", "auto_balanced" -> listOf("--disorder", "1")
+            // Start without modifying the proxy-server handshake. Only after a
+            // reset/timeout does ciadpi reconnect with the Linux-compatible
+            // disorder strategy. Scope arguments must be repeated because
+            // --auto starts a new upstream strategy group.
+            "auto", "auto_balanced" -> buildList {
+                add("--auto=torst")
+                addAll(listOf("--proto", "http,tls"))
+                if (s.ports80And443Only) addAll(listOf("--pf", "80-443"))
+                addAll(listOf("--disorder", "1"))
+            }
 
             // Stronger chain for networks that reset several normal desync variants.
             "auto_aggressive" -> listOf(
