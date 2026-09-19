@@ -1,13 +1,13 @@
 package com.v2ray.ang.dpi
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class ByeDpiManagerTest {
 
     @Test
-    fun defaultAutoPresetUsesProvenMaximumCascade() {
+    fun defaultAutoPresetUsesStableWebSocketSafeStrategy() {
         val settings = ByeDpiSettings(
             enabled = true,
             strategy = "auto",
@@ -21,14 +21,12 @@ class ByeDpiManagerTest {
 
         val args = ByeDpiManager.presetArguments(settings)
 
-        assertEquals(listOf("--disorder", "1", "--fake", "-1"), args.take(4))
-        assertTrue(args.contains("--auto=torst"))
-        assertTrue(args.contains("--auto=ssl_err"))
-        assertTrue(args.contains("--fake-tls-mod"))
+        assertEquals(listOf("--disorder", "1", "--fake", "-1"), args)
+        assertFalse(args.any { it.startsWith("--auto=") })
     }
 
     @Test
-    fun defaultAutoPresetExactlyMatchesMaximumPreset() {
+    fun maximumPresetKeepsFallbackCascadeSeparateFromAuto() {
         val automatic = ByeDpiSettings(
             enabled = true,
             strategy = "auto_balanced",
@@ -42,9 +40,11 @@ class ByeDpiManagerTest {
 
         val maximum = automatic.copy(strategy = "auto_aggressive")
 
-        assertEquals(
-            ByeDpiManager.presetArguments(maximum),
-            ByeDpiManager.presetArguments(automatic),
-        )
+        val automaticArgs = ByeDpiManager.presetArguments(automatic)
+        val maximumArgs = ByeDpiManager.presetArguments(maximum)
+
+        assertEquals(automaticArgs, maximumArgs.take(automaticArgs.size))
+        assertFalse(automaticArgs.any { it.startsWith("--auto=") })
+        assertFalse(maximumArgs == automaticArgs)
     }
 }

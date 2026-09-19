@@ -278,7 +278,7 @@ object ByeDpiManager {
 
     /**
      * Presets are intentionally composed only from options supported by upstream ciadpi.
-     * "auto" follows the same field-proven cascade as the Maximum preset.
+     * "auto" uses a stable WebSocket-safe strategy; Maximum keeps the full cascade.
      */
     internal fun presetArguments(s: ByeDpiSettings): List<String> {
         val pos = s.splitPosition.ifBlank { "1+s" }
@@ -293,10 +293,10 @@ object ByeDpiManager {
             return args
         }
 
-        // This is the cascade used by the UI's "Maximum" preset. Keep the
-        // default automatic modes on the same proven cascade: most users never
-        // change the preset, and a weaker direct/disorder-only chain leaves
-        // them without DPI bypass on networks that require fake packets.
+        // This is the cascade used by the UI's "Maximum" preset. It is kept as
+        // an explicit recovery tool: switching strategies after a reset is too
+        // disruptive for long-lived WebSocket proxy transports to be the
+        // default.
         val provenAutoCascade = listOf(
             "--disorder", "1", "--fake", "-1",
             "--auto=torst", "--split", "1+s", "--disorder", "3+s", "--fake", "-1", "--ttl", ttl,
@@ -336,14 +336,16 @@ object ByeDpiManager {
                 "--auto=torst", "--disorder", "1",
             )
 
-            // Auto must be useful without asking the user to discover and
-            // select Maximum manually. The previous direct-first fallback was
-            // reproducibly ineffective while this cascade works on the same
-            // device/network/configuration.
-            "auto", "auto_balanced" -> provenAutoCascade
+            // The stable first strategy from Maximum, without ciadpi's
+            // connection-reset driven strategy switching. A fixed strategy is
+            // important for WebSocket transports: changing groups tears down
+            // the tunnel and produces EOF/closed-pipe reconnect storms.
+            "auto", "auto_balanced" -> listOf(
+                "--disorder", "1", "--fake", "-1",
+            )
 
-            // Explicit Maximum and default Auto intentionally share one
-            // implementation so they cannot silently drift apart again.
+            // Maximum intentionally retains the full fallback cascade for
+            // hostile networks where the stable default is insufficient.
             "auto_aggressive" -> provenAutoCascade
 
             else -> listOf("--split", pos)
